@@ -19,6 +19,6 @@ Then add **hubot-giphy** to your `external-scripts.json`:
 ## Sample Interaction
 
 ```
-user1>> hubot hello
-hubot>> hello!
+user1>> hubot giphy something interesting
+hubot>> <random image uri relating to 'something interesting'>
 ```
