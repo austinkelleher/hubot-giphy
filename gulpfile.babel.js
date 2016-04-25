@@ -54,7 +54,7 @@ gulp.task('test', [ 'mocha' ]);
 
 // npm test task
 gulp.task('test:npm', (done) => {
-  runSequence('clean', 'lint', 'mocha:coverage', done);
+  runSequence('clean', 'lint', 'mocha:coverage', 'coveralls', done);
 });
 
 gulp.task('config', () => {
