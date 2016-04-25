@@ -14,9 +14,10 @@
 # Author:
 #   Pat Sissons[@<org>]
 
-module.exports = (robot) ->
-  robot.respond /hello/, (msg) ->
-    msg.reply "hello!"
+api = require 'giphy-api'
 
-  robot.hear /orly/, ->
-    msg.send "yarly"
+class Giphy
+
+module.exports = (robot) ->
+  robot.respond /giphy\s*(.*)$/, (msg) ->
+    msg.send msg.match[1]

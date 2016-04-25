@@ -17,7 +17,8 @@
     "url": "https://github.com/patsissons/hubot-giphy/issues"
   },
   "dependencies": {
-    "coffee-script": "^1.10.0"
+    "coffee-script": "^1.10.0",
+    "giphy-api": "^1.1.15"
   },
   "devDependencies": {
     "chai": "^3.5.0",
@@ -29,6 +30,9 @@
   },
   "main": "index.coffee",
   "scripts": {
-    "test": "gulp test:npm"
+    "test": "gulp test:npm",
+    "mocha": "mocha --compilers coffee:coffee-script/register --recursive --reporter spec ./test/**/*.spec.coffee",
+    "debug": "mocha --compilers coffee:coffee-script/register --recursive --reporter spec ./test/**/*.spec.coffee --debug-brk",
+    "watch": "mocha --compilers coffee:coffee-script/register --recursive --reporter spec ./test/**/*.spec.coffee --watch"
   }
 }
