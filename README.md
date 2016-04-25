@@ -13,7 +13,9 @@ In hubot project repo, run:
 Then add **hubot-giphy** to your `external-scripts.json`:
 
 ```json
-["hubot-giphy"]
+[
+  "hubot-giphy"
+]
 ```
 
 ## Sample Interaction

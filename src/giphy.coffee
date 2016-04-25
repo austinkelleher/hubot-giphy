@@ -1,15 +1,22 @@
 # Description
-#   hubot interface for giphy-api
+#   hubot interface for giphy-api (search random gifs from the internet)
 #
 # Configuration:
-#   LIST_OF_ENV_VARS_TO_SET
+#   HUBOT_GIPHY_API_KEY         default: dc6zaTOxFJmzC, the public beta api key)
+#   HUBOT_GIPHY_RATING
+#   HUBOT_GIPHY_SCHEME          default: http
+#   HUBOT_GIPHY_INLINE_IMAGES
+#
 #
 # Commands:
 #   hubot hello - <what the respond trigger does>
 #   orly - <what the hear trigger does>
 #
 # Notes:
-#   <optional notes required for the script>
+#   HUBOT_GIPHY_API_KEY: get your api key @ http://api.giphy.com/
+#   HUBOT_GIPHY_RATING: available choices are y, g, pg, pg-13, or r
+#   HUBOT_GIPHY_SCHEME: choose https to rewrite all uri schemes to https
+#   HUBOT_GIPHY_INLINE_IMAGES: images are inlined instead of a uri when set to anything, i.e. ![giphy](uri)
 #
 # Author:
 #   Pat Sissons[@<org>]
