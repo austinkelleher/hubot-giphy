@@ -1,0 +1,13 @@
+/.vscode
+/node_modules
+/test
+
+.babelrc
+.eslintignore
+.eslintrc
+.gitignore
+.npmignore
+.travis.yml
+
+gulpfile.babel.js
+npm-debug.log

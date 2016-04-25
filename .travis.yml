@@ -1,6 +1,14 @@
 language: node_js
 node_js:
+  - stable
   - "0.12"
-  - "stable"
 notifications:
   email: false
+# deploy:
+#   provider: npm
+#   email: patricksissons@gmail.com
+#   api_key:
+#     secure: `travis encrypt YOUR_API_KEY --add deploy.api_key`
+#   on:
+#     branch: master
+#     repo: patsissons/hubot-giphy
