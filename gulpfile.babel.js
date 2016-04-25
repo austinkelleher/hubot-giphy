@@ -9,9 +9,9 @@ import coffeelint from 'gulp-coffeelint';
 import coveralls from 'gulp-coveralls';
 import eslint from 'gulp-eslint';
 import gulp from 'gulp';
-import istanbul from 'gulp-coffee-istanbul';
 import minimist from 'minimist';
 import mocha from 'gulp-mocha';
+import mochaSpawn from 'gulp-spawn-mocha';
 import open from 'gulp-open';
 import path from 'path';
 import runSequence from 'run-sequence';
@@ -139,19 +139,6 @@ gulp.task('lint:coffee', () => {
     .pipe(coffeelint.reporter('fail'));
 });
 
-// instrument Tasks
-
-gulp.task('instrument', () => {
-  log('Instrumenting with Istanbul', util.colors.magenta(config.dirs.test));
-
-  return gulp
-    .src([
-      path.join(config.dirs.src, '**', '*.coffee'),
-    ])
-    .pipe(istanbul())
-    .pipe(istanbul.hookRequire());
-});
-
 // mocha Tasks
 
 gulp.task('mocha', () => {
@@ -166,15 +153,19 @@ gulp.task('mocha', () => {
     }));
 });
 
-gulp.task('mocha:coverage', [ 'instrument' ], () => {
+gulp.task('mocha:coverage', () => {
   log('Covering tests with Mocha and Istanbul', util.colors.magenta(config.dirs.test));
 
   return gulp
     .src([
       path.join(config.dirs.test, '**', '*.spec.coffee'),
-    ])
-    .pipe(mocha())
-    .pipe(istanbul.writeReports());
+    ], { read: false })
+    .pipe(mochaSpawn({
+      recursive: true,
+      compilers: 'coffee:coffee-script/register',
+      require: path.join(config.dirs.test, 'setup.js'),
+      istanbul: true,
+    }));
 });
 
 // watch Tasks

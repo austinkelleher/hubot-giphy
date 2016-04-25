@@ -26,6 +26,7 @@ class Giphy
 
   respond: (msg) ->
     if msg and msg.match
+      # TODO: implement
       msg.send msg.match[1]
 
 giphy = new Giphy()
