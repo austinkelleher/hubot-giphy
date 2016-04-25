@@ -4,6 +4,9 @@
 // gulp tasks prefer unregulated arrow-body-style
 /* eslint-disable no-sync, arrow-body-style */
 
+// load environment variables
+require('dotenv').config();
+
 import clean from 'gulp-rimraf';
 import coffeelint from 'gulp-coffeelint';
 import coveralls from 'gulp-coveralls';
