@@ -4,6 +4,9 @@ node_js:
   - "0.12"
 notifications:
   email: false
+script: npm test
+after_success:
+  - 'gulp coveralls'
 # deploy:
 #   provider: npm
 #   email: patricksissons@gmail.com

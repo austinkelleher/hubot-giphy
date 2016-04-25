@@ -2,13 +2,17 @@
 
 // we can use sync safely here because it's just the gulp file
 // gulp tasks prefer unregulated arrow-body-style
-/* eslint-disable no-sync,arrow-body-style */
+/* eslint-disable no-sync, arrow-body-style */
 
+import clean from 'gulp-rimraf';
 import coffeelint from 'gulp-coffeelint';
+import coveralls from 'gulp-coveralls';
 import eslint from 'gulp-eslint';
 import gulp from 'gulp';
+import istanbul from 'gulp-coffee-istanbul';
 import minimist from 'minimist';
 import mocha from 'gulp-mocha';
+import open from 'gulp-open';
 import path from 'path';
 import runSequence from 'run-sequence';
 import util from 'gulp-util';
@@ -24,6 +28,7 @@ const config = {
   dirs: {
     src: path.join(__dirname, 'src'),
     test: path.join(__dirname, 'test'),
+    coverage: path.join(__dirname, 'coverage'),
   },
   test: {
     reporter: args.reporter || 'spec',
@@ -49,7 +54,7 @@ gulp.task('test', [ 'mocha' ]);
 
 // npm test task
 gulp.task('test:npm', (done) => {
-  runSequence('lint', 'mocha', done);
+  runSequence('clean', 'lint', 'mocha:coverage', done);
 });
 
 gulp.task('config', () => {
@@ -73,6 +78,9 @@ Tasks:
   ${ util.colors.cyan('gulp help') } will print this help text
   ${ util.colors.cyan('gulp config') } will print the gulp build configuration
 
+  ${ util.colors.cyan('gulp clean') } will delete all files in ${ util.colors.magenta(config.dirs.coverage) }
+       ${ [ 'coverage' ].map((x) => util.colors.cyan(`clean:${ x }`)).join(', ') }
+
   ${ util.colors.cyan('gulp lint') } will lint the source files with ${ util.colors.yellow('eslint') } and ${ util.colors.yellow('coffeelint') }
        ${ [ 'es', 'coffee' ].map((x) => util.colors.cyan(`lint:${ x }`)).join(', ') }
 
@@ -80,8 +88,25 @@ Tasks:
 
   ${ util.colors.cyan('gulp watch') } will start webpack in ${ util.colors.magenta('watch') } mode, and run all tests after any detected change
        ${ [ 'lint', 'mocha' ].map((x) => util.colors.cyan(`watch:${ x }`)).join(', ') }
+
+  ${ util.colors.cyan('gulp coveralls') } will upload test coverage results to coveralls.io
+
+  ${ util.colors.cyan('gulp browser') } will open a browser window to test coverage results
+       ${ [ 'coverage' ].map((x) => util.colors.cyan(`browser:${ x }`)).join(', ') }
 `);
   /* eslint-enable max-len */
+});
+
+// clean Tasks
+
+gulp.task('clean', [ 'clean:coverage' ]);
+
+gulp.task('clean:coverage', () => {
+  log('Cleaning', util.colors.magenta(config.dirs.coverage));
+
+  return gulp
+    .src(config.dirs.coverage, { read: false })
+    .pipe(clean());
 });
 
 // lint Tasks
@@ -89,6 +114,8 @@ Tasks:
 gulp.task('lint', [ 'lint:es', 'lint:coffee' ]);
 
 gulp.task('lint:es', () => {
+  log('Linting with ESLint');
+
   return gulp
     .src([
       path.join(__dirname, '*.js'),
@@ -99,6 +126,8 @@ gulp.task('lint:es', () => {
 });
 
 gulp.task('lint:coffee', () => {
+  log('Linting with CoffeeLint');
+
   return gulp
     .src([
       path.join(config.dirs.src, '**', '*.coffee'),
@@ -110,10 +139,23 @@ gulp.task('lint:coffee', () => {
     .pipe(coffeelint.reporter('fail'));
 });
 
+// instrument Tasks
+
+gulp.task('instrument', () => {
+  log('Instrumenting with Istanbul', util.colors.magenta(config.dirs.test));
+
+  return gulp
+    .src([
+      path.join(config.dirs.src, '**', '*.coffee'),
+    ])
+    .pipe(istanbul())
+    .pipe(istanbul.hookRequire());
+});
+
 // mocha Tasks
 
 gulp.task('mocha', () => {
-  log('Testing with Mocha:', util.colors.magenta(config.dirs.test));
+  log('Testing with Mocha', util.colors.magenta(config.dirs.test));
 
   return gulp
     .src([
@@ -122,6 +164,17 @@ gulp.task('mocha', () => {
     .pipe(mocha({
       reporter: args.reporter || (config.quiet ? 'dot' : config.test.reporter),
     }));
+});
+
+gulp.task('mocha:coverage', [ 'instrument' ], () => {
+  log('Covering tests with Mocha and Istanbul', util.colors.magenta(config.dirs.test));
+
+  return gulp
+    .src([
+      path.join(config.dirs.test, '**', '*.spec.coffee'),
+    ])
+    .pipe(mocha())
+    .pipe(istanbul.writeReports());
 });
 
 // watch Tasks
@@ -133,12 +186,10 @@ gulp.task('watch:mocha', () => {
 
   return gulp
     .watch([
+      path.join(config.dirs.src, '**', '*.coffee'),
       path.join(config.dirs.test, '**', '*.spec.coffee'),
     ], () => {
       runSequence('mocha', () => null);
-    })
-    .on('change', () => {
-      log('Testing...');
     });
 });
 
@@ -153,8 +204,23 @@ gulp.task('watch:lint', () => {
       path.join(__dirname, '*.js'),
     ], () => {
       runSequence('lint', () => null);
-    })
-    .on('change', () => {
-      log('Linting...');
     });
+});
+
+// coveralls Tasks
+
+gulp.task('coveralls', [ 'mocha:coverage' ], () => {
+  gulp
+    .src(path.join(config.dirs.coverage, '**', 'lcov.info'))
+    .pipe(coveralls());
+});
+
+// browser Tasks
+
+gulp.task('browser', [ 'browser:coverage' ]);
+
+gulp.task('browser:coverage', [ 'mocha:coverage' ], () => {
+  return gulp
+    .src('')
+    .pipe(open({ uri: path.join(config.dirs.coverage, 'lcov-report', 'index.html') }));
 });

@@ -30,15 +30,20 @@
     "eslint": "^2.8.0",
     "eslint-config-strict": "^8.5.1",
     "gulp": "^3.9.1",
+    "gulp-coffee-istanbul": "^0.8.1",
     "gulp-coffeelint": "^0.6.0",
+    "gulp-coveralls": "^0.1.4",
     "gulp-eslint": "^2.0.0",
     "gulp-mocha": "^2.2.0",
+    "gulp-open": "^2.0.0",
+    "gulp-rimraf": "^0.2.0",
     "gulp-util": "^3.0.7",
     "minimist": "^1.2.0",
     "mocha": "^2.4.5",
     "run-sequence": "^1.1.5",
     "sinon": "^1.17.3",
-    "sinon-chai": "^2.8.0"
+    "sinon-chai": "^2.8.0",
+    "traceur": "0.0.108"
   },
   "main": "index.coffee",
   "scripts": {
