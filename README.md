@@ -1,5 +1,5 @@
 [![Build Status](https://img.shields.io/travis/patsissons/hubot-giphy.svg?branch=develop)](https://travis-ci.org/patsissons/hubot-giphy)
-[![Coverage Status](https://img.shields.io/coveralls/patsissons/hubot-giphy.svg?branch=develop)](https://coveralls.io/github/patsissons/hubot-giphy?branch=develop)
+[![Coverage Status](https://img.shields.io/coveralls/patsissons/hubot-giphy/develop.svg)](https://coveralls.io/github/patsissons/hubot-giphy?branch=develop)
 [![npm Version](https://img.shields.io/npm/v/hubot-giphy.svg)](https://www.npmjs.com/package/hubot-giphy)
 [![npm Downloads](https://img.shields.io/npm/dt/hubot-giphy.svg)](https://www.npmjs.com/package/hubot-giphy)
 [![npm License](https://img.shields.io/npm/l/hubot-giphy.svg)](https://www.npmjs.com/package/hubot-giphy)
