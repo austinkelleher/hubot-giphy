@@ -54,7 +54,9 @@ gulp.task('test', [ 'mocha' ]);
 
 // npm test task
 gulp.task('test:npm', (done) => {
-  runSequence('clean', 'lint', 'mocha:coverage', 'coveralls', done);
+  runSequence('clean', 'lint', 'mocha:coverage', () => {
+    runSequence('coveralls:upload', done);
+  });
 });
 
 gulp.task('config', () => {
@@ -200,8 +202,12 @@ gulp.task('watch:lint', () => {
 
 // coveralls Tasks
 
-gulp.task('coveralls', [ 'mocha:coverage' ], () => {
-  gulp
+gulp.task('coveralls', (done) => {
+  runSequence('mocha:coverage', 'coveralls:upload', done);
+});
+
+gulp.task('coveralls:upload', () => {
+  return gulp
     .src(path.join(config.dirs.coverage, '**', 'lcov.info'))
     .pipe(coveralls());
 });
