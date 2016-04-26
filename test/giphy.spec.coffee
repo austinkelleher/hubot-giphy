@@ -83,6 +83,24 @@ describe 'giphy', ->
         should.not.exist state
 
     describe '.match', ->
+      it 'matches empty input', ->
+        match = @giphy.match ''
+        should.exist match
+        should.equal match[1], undefined
+        match[2].should.eql ''
+
+      it 'matches null input', ->
+        match = @giphy.match null
+        should.exist match
+        should.equal match[1], undefined
+        match[2].should.eql ''
+
+      it 'matches undefined input', ->
+        match = @giphy.match()
+        should.exist match
+        should.equal match[1], undefined
+        match[2].should.eql ''
+
       it 'matches search', ->
         match = @giphy.match 'search'
         should.exist match
@@ -135,19 +153,34 @@ describe 'giphy', ->
       it 'parses empty input', ->
         @msg.match = [ null, '' ]
         state = @giphy.createState @msg
-        @giphy.parseEndpoint state
+        result = @giphy.parseEndpoint state
+        result.should.be.true
+        state.endpoint.should.eql 'search'
+        state.argText.should.eql ''
 
       it 'parses an endpoint without args', ->
         @msg.match = [ null, 'search' ]
         state = @giphy.createState @msg
-        @giphy.parseEndpoint state
+        result = @giphy.parseEndpoint state
+        result.should.be.true
+        state.endpoint.should.eql 'search'
+        state.argText.should.eql ''
 
       it 'parses an endpoint with a single arg', ->
-        @msg.match = [ null, 'search' ]
+        @msg.match = [ null, 'search testing' ]
         state = @giphy.createState @msg
-        @giphy.parseEndpoint state
+        result = @giphy.parseEndpoint state
+        result.should.be.true
+        state.endpoint.should.eql 'search'
+        state.argText.should.eql 'testing'
 
       it 'parses an endpoint with multiple args', ->
+        @msg.match = [ null, 'search for stuff' ]
+        state = @giphy.createState @msg
+        result = @giphy.parseEndpoint state
+        result.should.be.true
+        state.endpoint.should.eql 'search'
+        state.argText.should.eql 'for stuff'
 
     describe '.parseArgs', ->
     describe '.respond', ->

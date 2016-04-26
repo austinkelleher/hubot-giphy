@@ -42,7 +42,9 @@ class Giphy
     'help',
   ]
 
-  @regex = new RegExp "^\\s*(#{Giphy.endpoints.join('|')})\\s*(.*?)$", 'i'
+  @regex = new RegExp "^\\s*(#{Giphy.endpoints.join('|')})?\\s*(.*?)$", 'i'
+
+  @defaultEndpoint = process.env.HUBOT_GIPHY_DEFAULT_ENDPOINT or 'search'
 
   constructor: (api) ->
     @api = api
@@ -63,14 +65,15 @@ class Giphy
       }
 
   match: (input) ->
-    if input
-      Giphy.regex.exec input
+    Giphy.regex.exec input or ''
 
   parseEndpoint: (state) ->
-    match = /\s*([^\s]*)\s*(.*)/.exec state.input
+    match = @match state.input
 
-    if match and match[1] and match[2]
-      state.endpoint = match[1]
+    # match should never be null
+    ### istanbul ignore else ###
+    if match
+      state.endpoint = match[1] or Giphy.defaultEndpoint
       state.argText = match[2]
       true
     else
