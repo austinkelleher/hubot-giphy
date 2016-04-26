@@ -53,13 +53,14 @@ class Giphy
 
   createState: (msg) ->
     if msg
-      state =
+      state = {
         msg: msg
         input: msg.match[1]
         endpoint: undefined
         argText: undefined
         args: undefined
         uri: undefined
+      }
 
   match: (input) ->
     if input

@@ -21,10 +21,14 @@ test = (robot, msg, spy, input) ->
 
 describe 'giphy', ->
   beforeEach ->
-    @robot =
+    @robot = {
       respond: sinon.spy()
-    @msg =
+    }
+
+    @msg = {
       send: sinon.spy()
+    }
+
     @giphy = giphy @robot
 
   it 'has a valid class instance', ->

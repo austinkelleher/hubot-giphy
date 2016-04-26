@@ -5,7 +5,7 @@
     },
     "arrow_spacing": {
         "name": "arrow_spacing",
-        "level": "warn"
+        "level": "error"
     },
     "no_tabs": {
         "name": "no_tabs",
@@ -13,19 +13,19 @@
     },
     "no_trailing_whitespace": {
         "name": "no_trailing_whitespace",
-        "level": "warn",
+        "level": "error",
         "allowed_in_comments": false,
         "allowed_in_empty_lines": true
     },
     "max_line_length": {
         "name": "max_line_length",
         "value": 80,
-        "level": "warn",
+        "level": "ignore",
         "limitComments": true
     },
     "line_endings": {
         "name": "line_endings",
-        "level": "ignore",
+        "level": "error",
         "value": "unix"
     },
     "no_trailing_semicolons": {
@@ -43,7 +43,7 @@
     },
     "colon_assignment_spacing": {
         "name": "colon_assignment_spacing",
-        "level": "warn",
+        "level": "error",
         "spacing": {
             "left": 0,
             "right": 1
@@ -51,12 +51,12 @@
     },
     "no_implicit_braces": {
         "name": "no_implicit_braces",
-        "level": "ignore",
+        "level": "error",
         "strict": true
     },
     "no_plusplus": {
         "name": "no_plusplus",
-        "level": "ignore"
+        "level": "error"
     },
     "no_throwing_strings": {
         "name": "no_throwing_strings",
@@ -72,15 +72,15 @@
     },
     "no_empty_param_list": {
         "name": "no_empty_param_list",
-        "level": "warn"
+        "level": "error"
     },
     "no_stand_alone_at": {
         "name": "no_stand_alone_at",
-        "level": "ignore"
+        "level": "error"
     },
     "space_operators": {
         "name": "space_operators",
-        "level": "warn"
+        "level": "error"
     },
     "duplicate_key": {
         "name": "duplicate_key",
@@ -88,12 +88,12 @@
     },
     "empty_constructor_needs_parens": {
         "name": "empty_constructor_needs_parens",
-        "level": "ignore"
+        "level": "error"
     },
     "cyclomatic_complexity": {
         "name": "cyclomatic_complexity",
         "value": 10,
-        "level": "ignore"
+        "level": "error"
     },
     "newlines_after_classes": {
         "name": "newlines_after_classes",
@@ -102,7 +102,7 @@
     },
     "no_unnecessary_fat_arrows": {
         "name": "no_unnecessary_fat_arrows",
-        "level": "warn"
+        "level": "error"
     },
     "missing_fat_arrows": {
         "name": "missing_fat_arrows",
