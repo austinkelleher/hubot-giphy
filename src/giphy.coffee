@@ -1,5 +1,5 @@
 # Description
-#   hubot interface for giphy-api (search random gifs from the internet)
+#   hubot interface for giphy-api (https://github.com/austinkelleher/giphy-api)
 #
 # Configuration:
 #   HUBOT_GIPHY_API_KEY           default: dc6zaTOxFJmzC, the public beta api key)

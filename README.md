@@ -8,7 +8,7 @@
 
 # hubot-giphy
 
-hubot interface for giphy-api
+hubot interface for [giphy-api](https://github.com/austinkelleher/giphy-api)
 
 See [`src/giphy.coffee`](src/giphy.coffee) for full documentation.
 
