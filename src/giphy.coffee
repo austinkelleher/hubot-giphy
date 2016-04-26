@@ -25,30 +25,52 @@
 # Author:
 #   Pat Sissons[patricksissons@gmail.com]
 
-api = require 'giphy-api'
+api = require('giphy-api')({
+  https: (process.env.HUBOT_GIPHY_HTTPS is 'true') or false
+  timeout: Number(process.env.HUBOT_GIPHY_TIMEOUT) or null
+  apiKey: process.env.HUBOT_GIPHY_API_KEY or 'dc6zaTOxFJmzC'
+})
 
 class Giphy
+
+  @endpoints = [
+    'search',
+    'id',
+    'translate',
+    'random',
+    'trending',
+    'help',
+  ]
+
+  @regex = new RegExp "^\\s*(#{Giphy.endpoints.join('|')})\\s*(.*?)$", 'i'
 
   constructor: (api) ->
     @api = api
 
   error: (msg, reason) ->
-    msg.send reason
+    if msg and reason
+      msg.send reason
 
   createState: (msg) ->
-    state =
-      msg: msg
-      input: msg.match[1]
-      endpoint: undefined
-      argText: undefined
-      args: undefined
-      uri: undefined
+    if msg
+      state =
+        msg: msg
+        input: msg.match[1]
+        endpoint: undefined
+        argText: undefined
+        args: undefined
+        uri: undefined
+
+  match: (input) ->
+    if input
+      Giphy.regex.exec input
 
   parseEndpoint: (state) ->
-    match = /\s*([^\s]+)\s*(.*)/.exec state.input
+    match = /\s*([^\s]*)\s*(.*)/.exec state.input
 
     if match and match[1] and match[2]
       state.endpoint = match[1]
+      state.argText = match[2]
       true
     else
       false

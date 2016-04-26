@@ -5,7 +5,9 @@
 /* eslint-disable no-sync, arrow-body-style */
 
 // load environment variables
-require('dotenv').config();
+require('dotenv').config({
+  silent: true,
+});
 
 import clean from 'gulp-rimraf';
 import coffeelint from 'gulp-coffeelint';
