@@ -168,5 +168,6 @@ module.exports = (robot) ->
     giphy.respond msg
 
   # this allows testing to instrument the giphy instance
+  ### istanbul ignore next ###
   if NODE_ENV == 'development'
     giphy
