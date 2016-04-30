@@ -168,5 +168,5 @@ module.exports = (robot) ->
 
   # this allows testing to instrument the giphy instance
   ### istanbul ignore next ###
-  if process.env.NODE_ENV == 'development' or process.env.TRAVIS
+  if global and global.EXPOSE_INSTANCE
     giphy

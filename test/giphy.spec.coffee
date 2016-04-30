@@ -7,6 +7,9 @@ chai.use require 'sinon-chai'
 
 exampleImageUri = 'http://giphy.com/example.gif'
 
+# this allows us to instrument the internal Giphy instance
+global.EXPOSE_INSTANCE = true
+
 testHubot = (spy, input, args) ->
   [callback, other, ...] = spy
     .getCalls()
