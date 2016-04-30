@@ -2,7 +2,7 @@
 #   hubot interface for giphy-api (https://github.com/austinkelleher/giphy-api)
 #
 # Configuration:
-#   HUBOT_GIPHY_API_KEY           default: dc6zaTOxFJmzC, the public beta api key)
+#   HUBOT_GIPHY_API_KEY
 #   HUBOT_GIPHY_HTTPS
 #   HUBOT_GIPHY_TIMEOUT
 #   HUBOT_GIPHY_DEFAULT_LIMIT
@@ -25,29 +25,41 @@
 # Author:
 #   Pat Sissons[patricksissons@gmail.com]
 
+DEBUG = process.env.DEBUG
+
 api = require('giphy-api')({
   https: (process.env.HUBOT_GIPHY_HTTPS is 'true') or false
   timeout: Number(process.env.HUBOT_GIPHY_TIMEOUT) or null
-  apiKey: process.env.HUBOT_GIPHY_API_KEY or 'dc6zaTOxFJmzC'
+  apiKey: process.env.HUBOT_GIPHY_API_KEY
 })
 
 class Giphy
 
+  @SearchEndpointName = 'search'
+  @IdEndpointName = 'id'
+  @TranslateEndpointName = 'translate'
+  @RandomEndpointName = 'random'
+  @TrendingEndpointName = 'trending'
+  @HelpName = 'help'
+
   @endpoints = [
-    'search',
-    'id',
-    'translate',
-    'random',
-    'trending',
-    'help',
+    Giphy.SearchEndpointName,
+    Giphy.IdEndpointName,
+    Giphy.TranslateEndpointName,
+    Giphy.RandomEndpointName,
+    Giphy.TrendingEndpointName,
   ]
 
-  @regex = new RegExp "^\\s*(#{Giphy.endpoints.join('|')})?\\s*(.*?)$", 'i'
+  @regex = new RegExp "^\\s*(#{Giphy.endpoints.join('|')}|#{Giphy.HelpName})?\\s*(.*?)$", 'i'
 
-  @defaultEndpoint = process.env.HUBOT_GIPHY_DEFAULT_ENDPOINT or 'search'
+  @defaultEndpoint = process.env.HUBOT_GIPHY_DEFAULT_ENDPOINT or Giphy.SearchEndpointName
 
   constructor: (api) ->
     @api = api
+
+  ### istanbul ignore next ###
+  log: ->
+    console.log.apply this, arguments if DEBUG
 
   error: (msg, reason) ->
     if msg and reason
@@ -59,43 +71,90 @@ class Giphy
         msg: msg
         input: msg.match[1]
         endpoint: undefined
-        argText: undefined
         args: undefined
+        options: undefined
         uri: undefined
       }
 
   match: (input) ->
+    @log "match:", input
     Giphy.regex.exec input or ''
 
-  parseEndpoint: (state) ->
+  getEndpoint: (state) ->
+    @log "getEndpoint:", state
     match = @match state.input
 
     # match should never be null
     ### istanbul ignore else ###
     if match
       state.endpoint = match[1] or Giphy.defaultEndpoint
-      state.argText = match[2]
-      true
+      state.args = match[2]
     else
-      false
+      state.endpoint = state.args = ''
 
-  parseArgs: (state) ->
-    if state.argText
-      state.args = []
-      true
+  getNextOption: (state) ->
+    regex = /\/(\w+):(\w+)/
+    optionFound = false
+    state.args = state.args.replace regex, (match, key, val) ->
+      if !isNaN(Number(val))
+        val = Number(val)
+      state.options[key] = val
+      optionFound = true
+      ''
+    state.args = state.args.trim()
+    optionFound
+
+  # rating, limit, offset, api
+  getOptions: (state) ->
+    @log "getOptions:", state
+    state.options = {}
+    while @getNextOption state
+      null
+
+  getSearchUri: (state) ->
+    @log "getSearchUri:", state
+    if state.args and state.args.length > 0
+      state.options.q = state.args
+      @api.search state.options, (err, res) =>
+        if err
+          @error state.msg, err
+        else
+          @sendResponse state, res
     else
-      false
+      @getRandomUri state
+
+  getIdUri: (state) ->
+  getTranslateUri: (state) ->
+  getRandomUri: (state) ->
+  getTrendingUri: (state) ->
+  getHelp: (state) ->
+
+  getUri: (state) ->
+    @log "getUri:", state
+    switch state.endpoint
+      when Giphy.SearchEndpointName then @getSearchUri state
+      when Giphy.IdEndpointName then @getIdUri state
+      when Giphy.TranslateEndpointName then @getTranslateUri state
+      when Giphy.RandomEndpointName then @getRandomUri state
+      when Giphy.TrendingEndpointName then @getTrendingUri state
+      when Giphy.HelpName then @getHelp state
+      else @error state.msg, "Unrecognized Endpoint: #{state.endpoint}"
+
+  sendResponse: (state, res) ->
+    @log "sendResponse:", state
+    if state.uri
+      state.msg.send state.uri
+    else
+      @error state.msg, 'No Results Found'
 
   respond: (msg) ->
     if msg and msg.match and msg.match[1]
       state = @createState msg
 
-      @parseEndpoint state and @parseArgs state
+      @getEndpoint state
+      @getOptions state
 
-      if state.uri
-        state.msg.send state.uri
-      else
-        @error state.msg, 'No Results Found'
+      @getUri state
     else
       @error msg, "I Didn't Understand Your Request"
 

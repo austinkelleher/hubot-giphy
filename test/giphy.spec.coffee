@@ -30,6 +30,11 @@ describe 'giphy', ->
     }
 
     @giphy = giphy @robot
+    sinon.stub @giphy.api, '_request', (options, callback) ->
+      callback null, exampleImageUri
+
+  afterEach ->
+    @giphy.api._request.restore()
 
   it 'has a valid class instance', ->
     should.exist @giphy
@@ -149,38 +154,109 @@ describe 'giphy', ->
         match[1].should.eql 'help'
         match[2].should.eql 'testing1 testing2'
 
-    describe '.parseEndpoint', ->
-      it 'parses empty input', ->
+    describe '.getEndpoint', ->
+      it 'handles empty input', ->
         @msg.match = [ null, '' ]
         state = @giphy.createState @msg
-        result = @giphy.parseEndpoint state
-        result.should.be.true
-        state.endpoint.should.eql 'search'
-        state.argText.should.eql ''
+        @giphy.getEndpoint state
+        should.exist state.endpoint
+        state.endpoint.should.eql @giphy.constructor.defaultEndpoint
+        state.args.should.eql ''
 
-      it 'parses an endpoint without args', ->
+      it 'handles an endpoint without args', ->
         @msg.match = [ null, 'search' ]
         state = @giphy.createState @msg
-        result = @giphy.parseEndpoint state
-        result.should.be.true
+        @giphy.getEndpoint state
+        should.exist state.endpoint
         state.endpoint.should.eql 'search'
-        state.argText.should.eql ''
+        state.args.should.eql ''
 
-      it 'parses an endpoint with a single arg', ->
+      it 'handles an endpoint with a single arg', ->
         @msg.match = [ null, 'search testing' ]
         state = @giphy.createState @msg
-        result = @giphy.parseEndpoint state
-        result.should.be.true
+        @giphy.getEndpoint state
+        should.exist state.endpoint
         state.endpoint.should.eql 'search'
-        state.argText.should.eql 'testing'
+        state.args.should.eql 'testing'
 
-      it 'parses an endpoint with multiple args', ->
+      it 'handles an endpoint with multiple args', ->
         @msg.match = [ null, 'search for stuff' ]
         state = @giphy.createState @msg
-        result = @giphy.parseEndpoint state
-        result.should.be.true
+        @giphy.getEndpoint state
+        should.exist state.endpoint
         state.endpoint.should.eql 'search'
-        state.argText.should.eql 'for stuff'
+        state.args.should.eql 'for stuff'
 
-    describe '.parseArgs', ->
+    describe '.getNextOption', ->
+      it 'handles empty args', ->
+        state = { args: '', options: {} }
+        optionFound = @giphy.getNextOption state
+        optionFound.should.be.false
+        state.args.should.eql ''
+        state.options.should.eql {}
+
+      it 'handles a single non-switch word', ->
+        state = { args: 'test1', options: {} }
+        optionFound = @giphy.getNextOption state
+        optionFound.should.be.false
+        state.args.should.eql 'test1'
+        state.options.should.eql {}
+
+      it 'handles multiple non-switch words', ->
+        state = { args: 'test1 test2', options: {} }
+        optionFound = @giphy.getNextOption state
+        optionFound.should.be.false
+        state.args.should.eql 'test1 test2'
+        state.options.should.eql {}
+
+      it 'handles a single numerical switch', ->
+        state = { args: '/test1:1', options: {} }
+        optionFound = @giphy.getNextOption state
+        optionFound.should.be.true
+        state.args.should.eql ''
+        state.options.should.eql { test1: 1 }
+
+      it 'handles a single non-numerical switch', ->
+        state = { args: '/test1:test1', options: {} }
+        optionFound = @giphy.getNextOption state
+        optionFound.should.be.true
+        state.args.should.eql ''
+        state.options.should.eql { test1: 'test1' }
+
+      it 'handles multiple switches', ->
+        state = { args: '/test1:1 /test2:2', options: {} }
+        optionFound = @giphy.getNextOption state
+        optionFound.should.be.true
+        state.args.should.eql '/test2:2'
+        state.options.should.eql { test1: 1 }
+
+      it 'handles switches before words', ->
+        state = { args: '/test1:1 test2', options: {} }
+        optionFound = @giphy.getNextOption state
+        optionFound.should.be.true
+        state.args.should.eql 'test2'
+        state.options.should.eql { test1: 1 }
+
+      it 'handles switches after words', ->
+        state = { args: 'test1 /test2:2', options: {} }
+        optionFound = @giphy.getNextOption state
+        optionFound.should.be.true
+        state.args.should.eql 'test1'
+        state.options.should.eql { test2: 2 }
+
+    describe '.getOptions', ->
+      it 'handles empty args', ->
+        state = { args: '' }
+        @giphy.getOptions state
+        state.args.should.eql ''
+        should.exist state.options
+        state.options.should.eql {}
+
+      it 'handles non-empty args', ->
+        state = { args: '/test1:1 test 2 /test3:test3' }
+        @giphy.getOptions state
+        state.args.should.eql 'test 2'
+        should.exist state.options
+        state.options.should.eql { test1: 1, test3: 'test3' }
+
     describe '.respond', ->
