@@ -117,7 +117,7 @@ class Giphy
         if err
           @error state.msg, err
         else
-          @sendResponse state, res
+          @sendResponse state
     else
       @getRandomUri state
 
@@ -138,7 +138,7 @@ class Giphy
       when Giphy.HelpName then @getHelp state
       else @error state.msg, "Unrecognized Endpoint: #{state.endpoint}"
 
-  sendResponse: (state, res) ->
+  sendResponse: (state) ->
     @log "sendResponse:", state
     if state.uri
       @sendMessage state.msg, state.uri
