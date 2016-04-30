@@ -32,43 +32,52 @@ describe 'giphy', ->
     }
 
     @giphy = giphy @robot
-    sinon.stub @giphy.api, '_request', (options, callback) ->
-      callback null, exampleImageUri
-
-  afterEach ->
-    @giphy.api._request.restore()
 
   describe 'test instrumentation', ->
     it 'has a valid class instance', ->
       should.exist @giphy
 
   describe 'hubot script', ->
+    beforeEach ->
+      sinon.stub @giphy, 'respond'
+
+    afterEach ->
+      @giphy.respond.restore()
+
     it 'has an active respond trigger', ->
       @robot.respond.should.have.been.called.once
 
     it 'responds to giphy command without args', ->
-      sinon.stub @giphy, 'respond'
       testHubot @robot.respond, 'giphy', 'testing'
       @giphy.respond.should.have.been.calledWith 'testing'
-      @giphy.respond.restore()
 
     it 'responds to giphy command with args', ->
-      sinon.stub @giphy, 'respond'
       testHubot @robot.respond, 'giphy test', 'testing'
       @giphy.respond.should.have.been.calledWith 'testing'
-      @giphy.respond.restore()
 
     it 'does not respond to non-giphy command without args', ->
-      sinon.stub @giphy, 'respond'
       testHubot @robot.respond, 'notgiphy'
       @giphy.respond.should.not.have.been.called
-      @giphy.respond.restore()
 
     it 'does not respond to non-giphy command with args', ->
-      sinon.stub @giphy, 'respond'
       testHubot @robot.respond, 'notgiphy test'
       @giphy.respond.should.not.have.been.called
-      @giphy.respond.restore()
+
+    it 'matches giphy command args', ->
+      responder = @robot.respond.getCalls()[0]
+      match = responder.args[0].exec 'giphy testing'
+      should.exist match
+      match.should.have.lengthOf 2
+      match[0].should.eql 'giphy testing'
+      match[1].should.eql 'testing'
+
+    it 'matches giphy command args and trims spaces', ->
+      responder = @robot.respond.getCalls()[0]
+      match = responder.args[0].exec 'giphy     testing     '
+      should.exist match
+      match.should.have.lengthOf 2
+      match[0].should.eql 'giphy     testing     '
+      match[1].should.eql 'testing'
 
   describe 'class', ->
     it 'has a valid api', ->
@@ -79,21 +88,23 @@ describe 'giphy', ->
       @giphy.constructor.defaultEndpoint.should.have.length.above 0
 
     describe '.error', ->
-      it 'sends the reason if msg and reason exist', ->
+      beforeEach ->
         sinon.stub @giphy, 'sendMessage'
+
+      afterEach ->
+        @giphy.sendMessage.restore()
+
+      it 'sends the reason if msg and reason exist', ->
         @giphy.error @msg, 'test'
         @giphy.sendMessage.should.have.been.called.once
         @giphy.sendMessage.should.have.been.calledWith @msg, 'test'
-        @giphy.sendMessage.restore()
 
       it 'ignores a null msg or reason', ->
-        sinon.stub @giphy, 'sendMessage'
         @giphy.error()
         @giphy.error @msg
         @giphy.error @msg, null
         @giphy.error null, 'test'
         @giphy.sendMessage.should.not.have.been.called
-        @giphy.sendMessage.restore()
 
     describe '.createState', ->
       it 'returns a valid state instance', ->
@@ -198,8 +209,7 @@ describe 'giphy', ->
 
       it 'handles null match result', ->
         state = {}
-        sinon.stub @giphy, 'match', ->
-          null
+        sinon.stub @giphy, 'match', -> null
         @giphy.getEndpoint state
         @giphy.match.restore()
         state.endpoint.should.eql ''
@@ -207,8 +217,7 @@ describe 'giphy', ->
 
       it 'handles endpoint and args match', ->
         state = {}
-        sinon.stub @giphy, 'match', ->
-          [ null, 'test1', 'test2' ]
+        sinon.stub @giphy, 'match', -> [ null, 'test1', 'test2' ]
         @giphy.getEndpoint state
         @giphy.match.restore()
         state.endpoint.should.eql 'test1'
@@ -216,8 +225,7 @@ describe 'giphy', ->
 
       it 'handles only args match', ->
         state = {}
-        sinon.stub @giphy, 'match', ->
-          [ null, null, 'test2' ]
+        sinon.stub @giphy, 'match', -> [ null, null, 'test2' ]
         @giphy.getEndpoint state
         @giphy.match.restore()
         state.endpoint.should.eql @giphy.constructor.defaultEndpoint
@@ -290,8 +298,7 @@ describe 'giphy', ->
     describe '.getOptions', ->
       it 'handles false result from getNextOption', ->
         state = { args: 'testing' }
-        sinon.stub @giphy, 'getNextOption', (s) ->
-          false
+        sinon.stub @giphy, 'getNextOption', (s) -> false
         @giphy.getOptions state
         @giphy.getNextOption.should.be.called.once
         @giphy.getNextOption.should.be.calledWith state
@@ -302,8 +309,7 @@ describe 'giphy', ->
       it 'handles true then false result from getNextOption', ->
         state = { args: 'testing' }
         calls = 2
-        sinon.stub @giphy, 'getNextOption', (state) ->
-          (calls = calls - 1) > 0
+        sinon.stub @giphy, 'getNextOption', (state) -> (calls = calls - 1) > 0
         @giphy.getOptions state
         @giphy.getNextOption.should.be.called.twice
         @giphy.getNextOption.should.be.calledWith state
@@ -325,7 +331,25 @@ describe 'giphy', ->
     describe '.getTrendingUri', ->
     describe '.getHelp', ->
     describe '.getUri', ->
+
     describe '.sendResponse', ->
+      beforeEach ->
+        sinon.stub @giphy, 'sendMessage'
+        sinon.stub @giphy, 'error'
+
+      afterEach ->
+        @giphy.sendMessage.restore()
+        @giphy.error.restore()
+
+      it 'handles state with a uri', ->
+        @giphy.sendResponse { msg: 'msg', uri: 'uri' }
+        @giphy.sendMessage.should.be.called.once
+        @giphy.sendMessage.should.be.calledWith 'msg', 'uri'
+
+      it 'handles state without a uri', ->
+        @giphy.sendResponse {}
+        @giphy.error.should.be.called.once
+
     describe '.sendMessage', ->
       it 'sends a message when msg and message are valid', ->
         @giphy.sendMessage @msg, 'testing'
@@ -341,3 +365,47 @@ describe 'giphy', ->
         @msg.send.should.not.have.been.called
 
     describe '.respond', ->
+      beforeEach ->
+        sinon.stub @giphy, 'getEndpoint'
+        sinon.stub @giphy, 'getOptions'
+        sinon.stub @giphy, 'getUri'
+        sinon.stub @giphy, 'error'
+
+      afterEach ->
+        @giphy.getEndpoint.restore()
+        @giphy.getOptions.restore()
+        @giphy.getUri.restore()
+        @giphy.error.restore()
+
+      it 'handles a valid msg', ->
+        msg = { match: [ null, 'testing' ] }
+        state = 'state'
+        sinon.stub @giphy, 'createState', -> state
+        @giphy.respond msg
+        @giphy.createState.should.have.been.calledWith msg
+        @giphy.getEndpoint.should.have.been.calledWith state
+        @giphy.getOptions.should.have.been.calledWith state
+        @giphy.getUri.should.have.been.calledWith state
+        @giphy.createState.restore()
+
+      it 'handles null msg', ->
+        @giphy.respond()
+        @giphy.respond null
+        @giphy.getUri.should.not.have.been.called
+        @giphy.error.should.have.been.called.twice
+
+      it 'handles null giphy command args', ->
+        @giphy.respond {}
+        @giphy.respond { match: null }
+        @giphy.respond { match: [] }
+        @giphy.respond { match: [ null ] }
+        @giphy.respond { match: [ null, null ] }
+        @giphy.getUri.should.not.have.been.called
+        @giphy.error.should.have.callCount 5
+
+  describe 'api', ->
+    beforeEach ->
+      sinon.stub @giphy.api, '_request', (options, callback) -> callback null, exampleImageUri
+
+    afterEach ->
+      @giphy.api._request.restore()
