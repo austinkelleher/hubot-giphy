@@ -163,7 +163,7 @@ class Giphy
 giphy = new Giphy api
 
 module.exports = (robot) ->
-  robot.respond /^giphy\s*(.*)\s*$/, (msg) ->
+  robot.respond /^giphy\s*(.*?)\s*$/, (msg) ->
     giphy.respond msg
 
   # this allows testing to instrument the giphy instance
