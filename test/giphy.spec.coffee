@@ -300,10 +300,7 @@ describe 'giphy', ->
         state = { args: 'testing' }
         calls = 2
         sinon.stub @giphy, 'getNextOption', (state) ->
-          if --calls == 0
-            false
-          else
-            true
+          (calls = calls - 1) > 0
         @giphy.getOptions state
         @giphy.getNextOption.should.be.called.twice
         @giphy.getNextOption.should.be.calledWith state
