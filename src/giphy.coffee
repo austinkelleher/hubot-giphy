@@ -26,7 +26,6 @@
 #   Pat Sissons[patricksissons@gmail.com]
 
 DEBUG = process.env.DEBUG
-NODE_ENV = process.env.NODE_ENV
 
 api = require('giphy-api')({
   https: (process.env.HUBOT_GIPHY_HTTPS is 'true') or false
@@ -169,5 +168,5 @@ module.exports = (robot) ->
 
   # this allows testing to instrument the giphy instance
   ### istanbul ignore next ###
-  if NODE_ENV == 'development'
+  if process.env.NODE_ENV == 'development' or process.env.TRAVIS
     giphy
