@@ -7,17 +7,16 @@ chai.use require 'sinon-chai'
 
 exampleImageUri = 'http://giphy.com/example.gif'
 
-test = (robot, msg, spy, input) ->
+testHubot = (spy, input, args) ->
   [callback, other, ...] = spy
     .getCalls()
-    .filter((x) -> msg.match = x.args[0].exec input)
+    .filter((x) -> x.args[0].test input)
     .map((x) -> x.args[1])
 
-  if other
-    should.not.exist other, "Multiple Matches for #{input}"
+  should.not.exist other, "Multiple Matches for #{input}"
 
   if callback
-    callback.call robot, msg
+    callback.call null, args
 
 describe 'giphy', ->
   beforeEach ->
@@ -36,49 +35,73 @@ describe 'giphy', ->
   afterEach ->
     @giphy.api._request.restore()
 
-  it 'has a valid class instance', ->
-    should.exist @giphy
-
-  it 'has an active respond trigger', ->
-    @robot.respond.should.have.been.called.once
+  describe 'test instrumentation', ->
+    it 'has a valid class instance', ->
+      should.exist @giphy
 
   describe 'hubot script', ->
-    it 'responds to giphy', ->
-      test @robot, @msg, @robot.respond, 'giphy'
-      @msg.send.should.have.been.called.once
+    it 'has an active respond trigger', ->
+      @robot.respond.should.have.been.called.once
 
-    it 'responds to giphy test', ->
-      test @robot, @msg, @robot.respond, 'giphy test'
-      @msg.send.should.have.been.called.once
+    it 'responds to giphy command without args', ->
+      sinon.stub @giphy, 'respond'
+      testHubot @robot.respond, 'giphy', 'testing'
+      @giphy.respond.should.have.been.calledWith 'testing'
+      @giphy.respond.restore()
+
+    it 'responds to giphy command with args', ->
+      sinon.stub @giphy, 'respond'
+      testHubot @robot.respond, 'giphy test', 'testing'
+      @giphy.respond.should.have.been.calledWith 'testing'
+      @giphy.respond.restore()
+
+    it 'does not respond to non-giphy command without args', ->
+      sinon.stub @giphy, 'respond'
+      testHubot @robot.respond, 'notgiphy'
+      @giphy.respond.should.not.have.been.called
+      @giphy.respond.restore()
+
+    it 'does not respond to non-giphy command with args', ->
+      sinon.stub @giphy, 'respond'
+      testHubot @robot.respond, 'notgiphy test'
+      @giphy.respond.should.not.have.been.called
+      @giphy.respond.restore()
 
   describe 'class', ->
     it 'has a valid api', ->
       should.exist @giphy.api
 
+    it 'has a valid default endpoint', ->
+      should.exist @giphy.constructor.defaultEndpoint
+      @giphy.constructor.defaultEndpoint.should.have.length.above 0
+
     describe '.error', ->
       it 'sends the reason if msg and reason exist', ->
+        sinon.stub @giphy, 'sendMessage'
         @giphy.error @msg, 'test'
-        @msg.send.should.have.been.calledWith 'test'
+        @giphy.sendMessage.should.have.been.called.once
+        @giphy.sendMessage.should.have.been.calledWith @msg, 'test'
+        @giphy.sendMessage.restore()
 
-      it 'ignores a null reason', ->
+      it 'ignores a null msg or reason', ->
+        sinon.stub @giphy, 'sendMessage'
+        @giphy.error()
         @giphy.error @msg
         @giphy.error @msg, null
-        @msg.send.should.not.have.been.called
-
-      it 'ignores a null msg', ->
         @giphy.error null, 'test'
-        # we just expect to get to this point and not fail for a null msg
+        @giphy.sendMessage.should.not.have.been.called
+        @giphy.sendMessage.restore()
 
     describe '.createState', ->
       it 'returns a valid state instance', ->
-        @msg.match = [ null, 'test' ]
-        state = @giphy.createState @msg
+        msg = { match: [ null, 'test' ] }
+        state = @giphy.createState msg
         should.exist state
-        state.msg.should.eql @msg
-        state.input.should.eql 'test'
+        state.msg.should.eql msg
+        state.input.should.eql msg.match[1]
         should.equal state.endpoint, undefined
-        should.equal state.argText, undefined
         should.equal state.args, undefined
+        should.equal state.options, undefined
         should.equal state.uri, undefined
 
       it 'ignores a null msg', ->
@@ -154,38 +177,48 @@ describe 'giphy', ->
         match[1].should.eql 'help'
         match[2].should.eql 'testing1 testing2'
 
+      it 'matches only args', ->
+        match = @giphy.match 'testing1 testing2'
+        should.exist match
+        should.equal match[1], undefined
+        match[2].should.eql 'testing1 testing2'
+
     describe '.getEndpoint', ->
-      it 'handles empty input', ->
-        @msg.match = [ null, '' ]
-        state = @giphy.createState @msg
+      it 'passes state input to match function', ->
+        state = { input: 'testing' }
+        sinon.stub @giphy, 'match', ->
+          null
         @giphy.getEndpoint state
-        should.exist state.endpoint
+        @giphy.match.should.be.called.once
+        @giphy.match.should.be.calledWith state.input
+        @giphy.match.restore()
+
+      it 'handles null match result', ->
+        state = {}
+        sinon.stub @giphy, 'match', ->
+          null
+        @giphy.getEndpoint state
+        @giphy.match.restore()
+        state.endpoint.should.eql ''
+        state.args.should.eql ''
+
+      it 'handles endpoint and args match', ->
+        state = {}
+        sinon.stub @giphy, 'match', ->
+          [ null, 'test1', 'test2' ]
+        @giphy.getEndpoint state
+        @giphy.match.restore()
+        state.endpoint.should.eql 'test1'
+        state.args.should.eql 'test2'
+
+      it 'handles only args match', ->
+        state = {}
+        sinon.stub @giphy, 'match', ->
+          [ null, null, 'test2' ]
+        @giphy.getEndpoint state
+        @giphy.match.restore()
         state.endpoint.should.eql @giphy.constructor.defaultEndpoint
-        state.args.should.eql ''
-
-      it 'handles an endpoint without args', ->
-        @msg.match = [ null, 'search' ]
-        state = @giphy.createState @msg
-        @giphy.getEndpoint state
-        should.exist state.endpoint
-        state.endpoint.should.eql 'search'
-        state.args.should.eql ''
-
-      it 'handles an endpoint with a single arg', ->
-        @msg.match = [ null, 'search testing' ]
-        state = @giphy.createState @msg
-        @giphy.getEndpoint state
-        should.exist state.endpoint
-        state.endpoint.should.eql 'search'
-        state.args.should.eql 'testing'
-
-      it 'handles an endpoint with multiple args', ->
-        @msg.match = [ null, 'search for stuff' ]
-        state = @giphy.createState @msg
-        @giphy.getEndpoint state
-        should.exist state.endpoint
-        state.endpoint.should.eql 'search'
-        state.args.should.eql 'for stuff'
+        state.args.should.eql 'test2'
 
     describe '.getNextOption', ->
       it 'handles empty args', ->
@@ -195,14 +228,14 @@ describe 'giphy', ->
         state.args.should.eql ''
         state.options.should.eql {}
 
-      it 'handles a single non-switch word', ->
+      it 'handles a single non-switch arg', ->
         state = { args: 'test1', options: {} }
         optionFound = @giphy.getNextOption state
         optionFound.should.be.false
         state.args.should.eql 'test1'
         state.options.should.eql {}
 
-      it 'handles multiple non-switch words', ->
+      it 'handles multiple non-switch args', ->
         state = { args: 'test1 test2', options: {} }
         optionFound = @giphy.getNextOption state
         optionFound.should.be.false
@@ -230,33 +263,81 @@ describe 'giphy', ->
         state.args.should.eql '/test2:2'
         state.options.should.eql { test1: 1 }
 
-      it 'handles switches before words', ->
+      it 'handles switches before args', ->
         state = { args: '/test1:1 test2', options: {} }
         optionFound = @giphy.getNextOption state
         optionFound.should.be.true
         state.args.should.eql 'test2'
         state.options.should.eql { test1: 1 }
 
-      it 'handles switches after words', ->
+      it 'handles switches after args', ->
         state = { args: 'test1 /test2:2', options: {} }
         optionFound = @giphy.getNextOption state
         optionFound.should.be.true
         state.args.should.eql 'test1'
         state.options.should.eql { test2: 2 }
 
+      it 'handles mixed switches and args', ->
+        state = { args: '/test1:1 test 2 /test3:test3', options: {} }
+        optionFound = @giphy.getNextOption state
+        optionFound.should.be.true
+        state.args.should.eql 'test 2 /test3:test3'
+        state.options.should.eql { test1: 1 }
+
     describe '.getOptions', ->
-      it 'handles empty args', ->
-        state = { args: '' }
+      it 'handles false result from getNextOption', ->
+        state = { args: 'testing' }
+        sinon.stub @giphy, 'getNextOption', (s) ->
+          false
         @giphy.getOptions state
-        state.args.should.eql ''
+        @giphy.getNextOption.should.be.called.once
+        @giphy.getNextOption.should.be.calledWith state
+        @giphy.getNextOption.restore()
         should.exist state.options
         state.options.should.eql {}
 
-      it 'handles non-empty args', ->
+      it 'handles true then false result from getNextOption', ->
+        state = { args: 'testing' }
+        calls = 2
+        sinon.stub @giphy, 'getNextOption', (state) ->
+          if --calls == 0
+            false
+          else
+            true
+        @giphy.getOptions state
+        @giphy.getNextOption.should.be.called.twice
+        @giphy.getNextOption.should.be.calledWith state
+        @giphy.getNextOption.restore()
+        should.exist state.options
+        state.options.should.eql {}
+
+      it 'parses mixed switches and args', ->
         state = { args: '/test1:1 test 2 /test3:test3' }
         @giphy.getOptions state
         state.args.should.eql 'test 2'
         should.exist state.options
         state.options.should.eql { test1: 1, test3: 'test3' }
+
+    describe '.getSearchUri', ->
+    describe '.getIdUri', ->
+    describe '.getTranslateUri', ->
+    describe '.getRandomUri', ->
+    describe '.getTrendingUri', ->
+    describe '.getHelp', ->
+    describe '.getUri', ->
+    describe '.sendResponse', ->
+    describe '.sendMessage', ->
+      it 'sends a message when msg and message are valid', ->
+        @giphy.sendMessage @msg, 'testing'
+        @msg.send.should.be.called.once
+        @msg.send.should.be.calledWith 'testing'
+
+      it 'ignores calls when msg or message is null', ->
+        @giphy.sendMessage()
+        @giphy.sendMessage @msg
+        @giphy.sendMessage @msg, null
+        @giphy.sendMessage undefined, 'testing'
+        @giphy.sendMessage null, 'testing'
+        @msg.send.should.not.have.been.called
 
     describe '.respond', ->

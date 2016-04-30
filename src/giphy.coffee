@@ -26,6 +26,7 @@
 #   Pat Sissons[patricksissons@gmail.com]
 
 DEBUG = process.env.DEBUG
+NODE_ENV = process.env.NODE_ENV
 
 api = require('giphy-api')({
   https: (process.env.HUBOT_GIPHY_HTTPS is 'true') or false
@@ -63,7 +64,7 @@ class Giphy
 
   error: (msg, reason) ->
     if msg and reason
-      msg.send reason
+      @sendMessage msg, reason
 
   createState: (msg) ->
     if msg
@@ -84,8 +85,6 @@ class Giphy
     @log "getEndpoint:", state
     match = @match state.input
 
-    # match should never be null
-    ### istanbul ignore else ###
     if match
       state.endpoint = match[1] or Giphy.defaultEndpoint
       state.args = match[2]
@@ -143,9 +142,13 @@ class Giphy
   sendResponse: (state, res) ->
     @log "sendResponse:", state
     if state.uri
-      state.msg.send state.uri
+      @sendMessage state.msg, state.uri
     else
       @error state.msg, 'No Results Found'
+
+  sendMessage: (msg, message) ->
+    if msg and message
+      msg.send message
 
   respond: (msg) ->
     if msg and msg.match and msg.match[1]
@@ -161,8 +164,9 @@ class Giphy
 giphy = new Giphy api
 
 module.exports = (robot) ->
-  robot.respond /giphy\s*(.*)$/, (msg) ->
+  robot.respond /^giphy\s*(.*)\s*$/, (msg) ->
     giphy.respond msg
 
   # this allows testing to instrument the giphy instance
-  giphy
+  if NODE_ENV == 'development'
+    giphy
