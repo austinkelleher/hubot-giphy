@@ -353,7 +353,7 @@ describe 'giphy', ->
         callback = sinon.stub().returns 'result'
         result = @giphy.getRandomResult [ 'testing1', 'testing2' ], callback
         callback.should.have.been.called.once
-        callback.should.have.been.calledWith sinon.match('testing1') or sinon.match('testing2')
+        callback.should.have.been.calledWith sinon.match('testing1').or sinon.match('testing2')
         should.exist result
         result.should.be.eql 'result'
 
