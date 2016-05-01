@@ -33,6 +33,14 @@ api = require('giphy-api')({
   apiKey: process.env.HUBOT_GIPHY_API_KEY
 })
 
+extend = (object, properties) ->
+  for key, val of properties
+    object[key] = val if val
+  object
+
+merge = (options, overrides) ->
+  extend (extend {}, options), overrides
+
 class Giphy
 
   @SearchEndpointName = 'search'
@@ -112,8 +120,13 @@ class Giphy
   getSearchUri: (state) ->
     @log "getSearchUri:", state
     if state.args and state.args.length > 0
-      state.options.q = state.args
-      @api.search state.options, (err, res) =>
+      # state.options.q = state.args
+      options = merge {
+        q: state.args,
+        limit: process.env.HUBOT_GIPHY_DEFAULT_LIMIT
+        rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
+      }, state.options
+      @api.search options, (err, res) =>
         if err
           @error state.msg, err
         else
