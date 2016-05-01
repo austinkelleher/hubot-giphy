@@ -5,8 +5,6 @@ giphy = require '../src/giphy'
 should = chai.should()
 chai.use require 'sinon-chai'
 
-exampleImageUri = 'http://giphy.com/example.gif'
-
 # this allows us to instrument the internal Giphy instance
 global.EXPOSE_INSTANCE = true
 
@@ -32,6 +30,10 @@ describe 'giphy', ->
     }
 
     @giphy = giphy @robot
+    sinon.stub @giphy.api, '_request', (options, callback) -> callback null, null
+
+  afterEach ->
+    @giphy.api._request.restore()
 
   describe 'test instrumentation', ->
     it 'has a valid class instance', ->
@@ -325,12 +327,102 @@ describe 'giphy', ->
         state.options.should.eql { test1: 1, test3: 'test3' }
 
     describe '.getSearchUri', ->
+      it 'searches using args', ->
+        state = { args: 'testing' }
+        sinon.stub @giphy.api, 'search'
+        @giphy.getSearchUri state
+        @giphy.api.search.should.have.been.called.once
+        @giphy.api.search.should.have.been.calledWith { q: 'testing' }, sinon.match.func
+        @giphy.api.search.restore()
+
+      it 'searches using args and options', ->
+        state = { args: 'testing', options: { limit: 10 } }
+        sinon.stub @giphy.api, 'search'
+        @giphy.getSearchUri state
+        @giphy.api.search.should.have.been.called.once
+        @giphy.api.search.should.have.been.calledWith { q: 'testing', limit: 10 }, sinon.match.func
+        @giphy.api.search.restore()
+
+      it 'handles the callback response', ->
+        state = { msg: 'msg', args: 'testing' }
+        sinon.stub @giphy.api, 'search', (options, callback) -> callback null, 'response'
+        sinon.stub @giphy, 'sendResponse'
+        @giphy.getSearchUri state
+        @giphy.sendResponse.should.have.been.called.once
+        @giphy.sendResponse.should.have.been.calledWith state
+        @giphy.api.search.restore()
+        @giphy.sendResponse.restore()
+        should.exist state.uri
+
+      it 'handles errors in the callback', ->
+        state = { msg: 'msg', args: 'testing' }
+        sinon.stub @giphy.api, 'search', (options, callback) -> callback 'error'
+        sinon.stub @giphy, 'error'
+        @giphy.getSearchUri state
+        @giphy.error.should.have.been.called.once
+        @giphy.error.should.have.been.calledWith 'msg', 'error'
+        @giphy.api.search.restore()
+        @giphy.error.restore()
+
     describe '.getIdUri', ->
     describe '.getTranslateUri', ->
     describe '.getRandomUri', ->
     describe '.getTrendingUri', ->
     describe '.getHelp', ->
     describe '.getUri', ->
+      it 'handles a null endpoint', ->
+        sinon.stub @giphy, 'error'
+        @giphy.getUri {}
+        @giphy.error.should.have.been.called.once
+        @giphy.error.restore()
+
+      it 'handles a search endpoint', ->
+        state = { endpoint: @giphy.constructor.SearchEndpointName }
+        sinon.stub @giphy, 'getSearchUri'
+        @giphy.getUri state
+        @giphy.getSearchUri.should.have.been.called.once
+        @giphy.getSearchUri.should.have.been.calledWith state
+        @giphy.getSearchUri.restore()
+
+      it 'handles an id endpoint', ->
+        state = { endpoint: @giphy.constructor.IdEndpointName }
+        sinon.stub @giphy, 'getIdUri'
+        @giphy.getUri state
+        @giphy.getIdUri.should.have.been.called.once
+        @giphy.getIdUri.should.have.been.calledWith state
+        @giphy.getIdUri.restore()
+
+      it 'handles a translate endpoint', ->
+        state = { endpoint: @giphy.constructor.TranslateEndpointName }
+        sinon.stub @giphy, 'getTranslateUri'
+        @giphy.getUri state
+        @giphy.getTranslateUri.should.have.been.called.once
+        @giphy.getTranslateUri.should.have.been.calledWith state
+        @giphy.getTranslateUri.restore()
+
+      it 'handles a random endpoint', ->
+        state = { endpoint: @giphy.constructor.RandomEndpointName }
+        sinon.stub @giphy, 'getRandomUri'
+        @giphy.getUri state
+        @giphy.getRandomUri.should.have.been.called.once
+        @giphy.getRandomUri.should.have.been.calledWith state
+        @giphy.getRandomUri.restore()
+
+      it 'handles a trending endpoint', ->
+        state = { endpoint: @giphy.constructor.TrendingEndpointName }
+        sinon.stub @giphy, 'getTrendingUri'
+        @giphy.getUri state
+        @giphy.getTrendingUri.should.have.been.called.once
+        @giphy.getTrendingUri.should.have.been.calledWith state
+        @giphy.getTrendingUri.restore()
+
+      it 'handles help', ->
+        state = { endpoint: @giphy.constructor.HelpName }
+        sinon.stub @giphy, 'getHelp'
+        @giphy.getUri state
+        @giphy.getHelp.should.have.been.called.once
+        @giphy.getHelp.should.have.been.calledWith state
+        @giphy.getHelp.restore()
 
     describe '.sendResponse', ->
       beforeEach ->
@@ -402,10 +494,3 @@ describe 'giphy', ->
         @giphy.respond { match: [ null, null ] }
         @giphy.getUri.should.not.have.been.called
         @giphy.error.should.have.callCount 5
-
-  describe 'api', ->
-    beforeEach ->
-      sinon.stub @giphy.api, '_request', (options, callback) -> callback null, exampleImageUri
-
-    afterEach ->
-      @giphy.api._request.restore()
