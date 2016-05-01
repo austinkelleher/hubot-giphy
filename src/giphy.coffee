@@ -124,7 +124,6 @@ class Giphy
   getSearchUri: (state) ->
     @log "getSearchUri:", state
     if state.args and state.args.length > 0
-      # state.options.q = state.args
       options = merge {
         q: state.args,
         limit: process.env.HUBOT_GIPHY_DEFAULT_LIMIT
