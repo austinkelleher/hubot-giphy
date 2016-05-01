@@ -8,6 +8,20 @@ chai.use require 'sinon-chai'
 # this allows us to instrument the internal Giphy instance
 global.EXPOSE_INSTANCE = true
 
+sampleUri = 'http://giphy.com/example.gif'
+
+sampleCollectionResult = {
+  data: [
+    {
+      images: {
+        original: {
+          url: sampleUri
+        }
+      }
+    },
+  ]
+}
+
 testHubot = (spy, input, args) ->
   [callback, other, ...] = spy
     .getCalls()
@@ -326,6 +340,30 @@ describe 'giphy', ->
         should.exist state.options
         state.options.should.eql { test1: 1, test3: 'test3' }
 
+    describe '.getRandomResult', ->
+      it 'calls the callback with a single value collection', ->
+        callback = sinon.stub().returns 'result'
+        result = @giphy.getRandomResult [ 'testing' ], callback
+        callback.should.have.been.called.once
+        callback.should.have.been.calledWith 'testing'
+        should.exist result
+        result.should.be.eql 'result'
+
+      it 'calls the callback with a multiple value collection', ->
+        callback = sinon.stub().returns 'result'
+        result = @giphy.getRandomResult [ 'testing1', 'testing2' ], callback
+        callback.should.have.been.called.once
+        callback.should.have.been.calledWith sinon.match('testing1') or sinon.match('testing2')
+        should.exist result
+        result.should.be.eql 'result'
+
+      it 'handles null or empty data', ->
+        callback = sinon.spy()
+        @giphy.getRandomResult undefined, callback
+        @giphy.getRandomResult null, callback
+        @giphy.getRandomResult [], callback
+        callback.should.not.have.been.called
+
     describe '.getSearchUri', ->
       it 'searches using args', ->
         state = { args: 'testing' }
@@ -345,14 +383,27 @@ describe 'giphy', ->
 
       it 'handles the callback response', ->
         state = { msg: 'msg', args: 'testing' }
-        sinon.stub @giphy.api, 'search', (options, callback) -> callback null, 'response'
+        sinon.stub @giphy.api, 'search', (options, callback) -> callback null, sampleCollectionResult
         sinon.stub @giphy, 'sendResponse'
+        sinon.spy @giphy, 'getRandomResult'
         @giphy.getSearchUri state
         @giphy.sendResponse.should.have.been.called.once
         @giphy.sendResponse.should.have.been.calledWith state
+        @giphy.getRandomResult.should.have.been.called.once
+        @giphy.getRandomResult.should.have.been.calledWith sampleCollectionResult.data, sinon.match.func
         @giphy.api.search.restore()
         @giphy.sendResponse.restore()
+        @giphy.getRandomResult.restore()
         should.exist state.uri
+        state.uri.should.eql sampleUri
+
+      it 'calls getRandomUri for empty args', ->
+        sinon.spy @giphy, 'getRandomUri'
+        @giphy.getSearchUri {}
+        @giphy.getSearchUri { args: null }
+        @giphy.getSearchUri { args: '' }
+        @giphy.getRandomUri.should.have.callCount 3
+        @giphy.getRandomUri.restore()
 
       it 'handles errors in the callback', ->
         state = { msg: 'msg', args: 'testing' }
