@@ -117,6 +117,10 @@ class Giphy
     while @getNextOption state
       null
 
+  getRandomResult: (data, callback) ->
+    if data and callback and data.length > 0
+      callback(if data.length == 1 then data[0] else data[Math.floor(Math.random() * data.length)])
+
   getSearchUri: (state) ->
     @log "getSearchUri:", state
     if state.args and state.args.length > 0
@@ -130,6 +134,7 @@ class Giphy
         if err
           @error state.msg, err
         else
+          state.uri = @getRandomResult(res.data, (result) -> result.images.original.url)
           @sendResponse state
     else
       @getRandomUri state
