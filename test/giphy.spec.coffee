@@ -398,7 +398,7 @@ describe 'giphy', ->
         state.uri.should.eql sampleUri
 
       it 'calls getRandomUri for empty args', ->
-        sinon.spy @giphy, 'getRandomUri'
+        sinon.stub @giphy, 'getRandomUri'
         @giphy.getSearchUri {}
         @giphy.getSearchUri { args: null }
         @giphy.getSearchUri { args: '' }
