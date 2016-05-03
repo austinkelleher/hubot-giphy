@@ -85,11 +85,11 @@ class Giphy
       }
 
   match: (input) ->
-    @log "match:", input
+    @log 'match:', input
     Giphy.regex.exec input or ''
 
   getEndpoint: (state) ->
-    @log "getEndpoint:", state
+    @log 'getEndpoint:', state
     match = @match state.input
 
     if match
@@ -112,7 +112,7 @@ class Giphy
 
   # rating, limit, offset, api
   getOptions: (state) ->
-    @log "getOptions:", state
+    @log 'getOptions:', state
     state.options = {}
     while @getNextOption state
       null
@@ -121,8 +121,11 @@ class Giphy
     if data and callback and data.length > 0
       callback(if data.length == 1 then data[0] else data[Math.floor(Math.random() * data.length)])
 
+  getUriFromResult: (result) ->
+    result.images.original.url
+
   getSearchUri: (state) ->
-    @log "getSearchUri:", state
+    @log 'getSearchUri:', state
     if state.args and state.args.length > 0
       options = merge {
         q: state.args,
@@ -130,22 +133,51 @@ class Giphy
         rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
       }, state.options
       @api.search options, (err, res) =>
-        if err
-          @error state.msg, err
-        else
-          state.uri = @getRandomResult(res.data, (result) -> result.images.original.url)
-          @sendResponse state
+        @handleResponse state, err, => @getRandomResult(res.data, @getUriFromResult)
     else
       @getRandomUri state
 
   getIdUri: (state) ->
+    @log 'getIdUri:', state
+    if state.args and state.args.length > 0
+      ids = state.args.split(' ').map(x -> x.trim())
+      @api.id ids, (err, res) =>
+        @handleResponse state, err, => @getRandomResult(res.data, @getUriFromResult)
+    else
+      @error state.msg, 'No Id Provided'
+
   getTranslateUri: (state) ->
+    @log 'getTranslateUri:', state
+    options = merge {
+      s: state.args,
+      rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
+    }, state.options
+    @api.translate options, (err, res) =>
+      @handleResponse state, err, => @getRandomResult(res.data, @getUriFromResult)
+
   getRandomUri: (state) ->
+    @log 'getRandomUri:', state
+    options = merge {
+      tag: state.args,
+      rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
+    }, state.options
+    @api.random options, (err, res) =>
+      console.log err, res
+      @handleResponse state, err, -> @getRandomResult(res.data, @getUriFromResult)
+
   getTrendingUri: (state) ->
+    @log 'getTrendingUri:', state
+    options = merge {
+      limit: process.env.HUBOT_GIPHY_DEFAULT_LIMIT
+      rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
+    }, state.options
+    @api.trending options, (err, res) =>
+      @handleResponse state, err, => @getRandomResult(res.data, @getUriFromResult)
+
   getHelp: (state) ->
 
   getUri: (state) ->
-    @log "getUri:", state
+    @log 'getUri:', state
     switch state.endpoint
       when Giphy.SearchEndpointName then @getSearchUri state
       when Giphy.IdEndpointName then @getIdUri state
@@ -155,8 +187,15 @@ class Giphy
       when Giphy.HelpName then @getHelp state
       else @error state.msg, "Unrecognized Endpoint: #{state.endpoint}"
 
+  handleResponse: (state, err, uriCreator) ->
+    if err
+      @error state.msg, err
+    else
+      state.uri = uriCreator.call this
+      @sendResponse state
+
   sendResponse: (state) ->
-    @log "sendResponse:", state
+    @log 'sendResponse:', state
     if state.uri
       @sendMessage state.msg, state.uri
     else
