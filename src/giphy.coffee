@@ -230,5 +230,12 @@ module.exports = (robot) ->
 
   # this allows testing to instrument the giphy instance
   ### istanbul ignore next ###
-  if global and global.EXPOSE_INSTANCE
+  if global and global.IS_TESTING
     giphy
+
+# this allows testing to instrument the giphy class
+### istanbul ignore next ###
+if global and global.IS_TESTING
+  module.exports.Giphy = Giphy
+  module.exports.extend = extend
+  module.exports.merge = merge

@@ -1,12 +1,17 @@
+# this allows us to instrument the giphy internals
+global.IS_TESTING = true
+
 chai = require 'chai'
 sinon = require 'sinon'
-giphy = require '../src/giphy'
+giphyApi = require 'giphy-api'
+hubotGiphy = require '../src/giphy'
+
+Giphy = hubotGiphy.Giphy
+extend = hubotGiphy.extend
+merge = hubotGiphy.merge
 
 should = chai.should()
 chai.use require 'sinon-chai'
-
-# this allows us to instrument the internal Giphy instance
-global.EXPOSE_INSTANCE = true
 
 sampleUri = 'http://giphy.com/example.gif'
 
