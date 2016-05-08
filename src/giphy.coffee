@@ -85,7 +85,6 @@ class Giphy
       }
 
   match: (input) ->
-    @log 'match:', input
     Giphy.regex.exec input or ''
 
   getEndpoint: (state) ->
@@ -99,6 +98,7 @@ class Giphy
       state.endpoint = state.args = ''
 
   getNextOption: (state) ->
+    @log 'getNextOption:', state
     regex = /\/(\w+):(\w+)/
     optionFound = false
     state.args = state.args.replace regex, (match, key, val) ->
@@ -175,6 +175,7 @@ class Giphy
       @handleResponse state, err, => @getRandomResult(res.data, @getUriFromResult)
 
   getHelp: (state) ->
+    @log 'getHelp:', state
 
   getUri: (state) ->
     @log 'getUri:', state
@@ -188,6 +189,7 @@ class Giphy
       else @error state.msg, "Unrecognized Endpoint: #{state.endpoint}"
 
   handleResponse: (state, err, uriCreator) ->
+    @log 'handleResponse:', state
     if err
       @error state.msg, err
     else
