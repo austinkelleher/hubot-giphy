@@ -638,7 +638,11 @@ describe 'giphy', ->
         @giphy.getRandomResultData.should.have.been.calledWith sampleCollectionResult.data, @giphy.getUriFromResultData
 
     describe '.getHelp', ->
-      it 'has no tests yet'
+      it 'send a response with help text', ->
+        state = { }
+        @fakes.stub @giphy, 'sendMessage'
+        @giphy.getHelp state
+        @giphy.sendMessage.should.have.been.called.once
 
     describe '.getUri', ->
       it 'handles a null endpoint', ->
