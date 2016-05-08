@@ -115,13 +115,13 @@ class Giphy
     while @getNextOption state
       null
 
-  getRandomResult: (data, callback) ->
+  getRandomResultData: (data, callback) ->
     if data and callback and data.length > 0
       callback(if data.length == 1 then data[0] else data[Math.floor(Math.random() * data.length)])
 
-  getUriFromResult: (result) ->
-    if result and result.images and result.images.original
-      result.images.original.url
+  getUriFromResultData: (data) ->
+    if data and data.images and data.images.original
+      data.images.original.url
 
   getSearchUri: (state) ->
     @log 'getSearchUri:', state
@@ -132,7 +132,7 @@ class Giphy
         rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
       }, state.options
       @api.search options, (err, res) =>
-        @handleResponse state, err, => @getRandomResult(res.data, @getUriFromResult)
+        @handleResponse state, err, => @getRandomResultData(res.data, @getUriFromResultData)
     else
       @getRandomUri state
 
@@ -141,7 +141,7 @@ class Giphy
     if state.args and state.args.length > 0
       ids = state.args.split(' ').map(x -> x.trim())
       @api.id ids, (err, res) =>
-        @handleResponse state, err, => @getRandomResult(res.data, @getUriFromResult)
+        @handleResponse state, err, => @getRandomResultData(res.data, @getUriFromResultData)
     else
       @error state.msg, 'No Id Provided'
 
@@ -152,7 +152,7 @@ class Giphy
       rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
     }, state.options
     @api.translate options, (err, res) =>
-      @handleResponse state, err, => @getRandomResult(res.data, @getUriFromResult)
+      @handleResponse state, err, => @getUriFromResultData res.data
 
   getRandomUri: (state) ->
     @log 'getRandomUri:', state
@@ -162,7 +162,7 @@ class Giphy
     }, state.options
     @api.random options, (err, res) =>
       console.log err, res
-      @handleResponse state, err, -> @getRandomResult(res.data, @getUriFromResult)
+      @handleResponse state, err, => @getUriFromResultData res.data
 
   getTrendingUri: (state) ->
     @log 'getTrendingUri:', state
@@ -171,7 +171,7 @@ class Giphy
       rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
     }, state.options
     @api.trending options, (err, res) =>
-      @handleResponse state, err, => @getRandomResult(res.data, @getUriFromResult)
+      @handleResponse state, err, => @getRandomResultData(res.data, @getUriFromResultData)
 
   getHelp: (state) ->
     @log 'getHelp:', state
