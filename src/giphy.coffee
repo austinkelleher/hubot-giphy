@@ -63,6 +63,18 @@ class Giphy
 
     @api = api
     @defaultEndpoint = process.env.HUBOT_GIPHY_DEFAULT_ENDPOINT or Giphy.SearchEndpointName
+    @helpText = "
+giphy [endpoint] [options...] [args]
+
+endpoints: search, id, translate, random, trending
+options: rating, limit, offset, api
+
+default endpoint is '#{@defaultEndpoint}' if none is specified
+options can be specified using /option:value
+
+Example:
+  giphy search /limit:100 /offset:50 /rating:pg something to search for
+".trim()
 
   ### istanbul ignore next ###
   log: ->
@@ -178,6 +190,7 @@ class Giphy
 
   getHelp: (state) ->
     @log 'getHelp:', state
+    @sendMessage state.msg, @helpText
 
   getUri: (state) ->
     @log 'getUri:', state
