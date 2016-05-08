@@ -417,10 +417,16 @@ describe 'giphy', ->
         @giphy.getRandomUri.should.have.callCount 3
 
     describe '.getIdUri', ->
+      it 'has no tests yet'
     describe '.getTranslateUri', ->
+      it 'has no tests yet'
     describe '.getRandomUri', ->
+      it 'has no tests yet'
     describe '.getTrendingUri', ->
+      it 'has no tests yet'
     describe '.getHelp', ->
+      it 'has no tests yet'
+
     describe '.getUri', ->
       it 'handles a null endpoint', ->
         @fakes.stub @giphy, 'error'
