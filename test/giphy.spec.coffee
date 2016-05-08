@@ -23,6 +23,10 @@ sampleData = {
   }
 }
 
+sampleResult = {
+  data: sampleData
+}
+
 sampleCollectionResult = {
   data: [
     sampleData,
