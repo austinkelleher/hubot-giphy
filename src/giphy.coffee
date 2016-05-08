@@ -139,7 +139,10 @@ class Giphy
   getIdUri: (state) ->
     @log 'getIdUri:', state
     if state.args and state.args.length > 0
-      ids = state.args.split(' ').map(x -> x.trim())
+      ids = state.args
+        .split(' ')
+        .filter((x) -> x.length > 0)
+        .map((x) -> x.trim())
       @api.id ids, (err, res) =>
         @handleResponse state, err, => @getRandomResultData(res.data, @getUriFromResultData)
     else
