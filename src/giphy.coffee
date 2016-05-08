@@ -122,7 +122,8 @@ class Giphy
       callback(if data.length == 1 then data[0] else data[Math.floor(Math.random() * data.length)])
 
   getUriFromResult: (result) ->
-    result.images.original.url
+    if result and result.images and result.images.original
+      result.images.original.url
 
   getSearchUri: (state) ->
     @log 'getSearchUri:', state
