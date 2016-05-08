@@ -30,16 +30,17 @@ giphyApi = require 'giphy-api'
 
 DEBUG = process.env.DEBUG
 
+# utility method for extending an object definition
 extend = (object, properties) ->
   for key, val of properties
     object[key] = val if val
   object
 
+# utility method for merging two objects
 merge = (options, overrides) ->
   extend (extend {}, options), overrides
 
 class Giphy
-
   @SearchEndpointName = 'search'
   @IdEndpointName = 'id'
   @TranslateEndpointName = 'translate'
