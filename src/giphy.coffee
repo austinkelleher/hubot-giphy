@@ -161,7 +161,6 @@ class Giphy
       rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
     }, state.options
     @api.random options, (err, res) =>
-      console.log err, res
       @handleResponse state, err, => @getUriFromResultData res.data
 
   getTrendingUri: (state) ->
