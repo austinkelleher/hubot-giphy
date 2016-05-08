@@ -58,6 +58,8 @@ class Giphy
   @regex = new RegExp "^\\s*(#{Giphy.endpoints.join('|')}|#{Giphy.HelpName})?\\s*(.*?)$", 'i'
 
   constructor: (api) ->
+    throw new Error 'Giphy API is required' if not api
+
     @api = api
     @defaultEndpoint = process.env.HUBOT_GIPHY_DEFAULT_ENDPOINT or Giphy.SearchEndpointName
 
