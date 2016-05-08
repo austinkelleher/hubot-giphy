@@ -69,6 +69,8 @@ describe 'giphy', ->
       should.exist @giphy
 
   describe 'hubot script', ->
+    giphyPluginInstance = null
+
     # helper function to confirm hubot responds to the correct input
     testHubot = (spy, input, args) ->
       [callback, other, ...] = spy
@@ -82,30 +84,32 @@ describe 'giphy', ->
         callback.call null, args
 
     beforeEach ->
-      @fakes.stub @giphy, 'respond'
+      giphyPluginInstance = hubotGiphy @robot
+      @fakes.stub giphyPluginInstance.api, '_request', (options, callback) -> callback 'XHR Attempted', null
+      @fakes.stub giphyPluginInstance, 'respond'
 
     it 'has an active respond trigger', ->
       @robot.respond.should.have.been.called.once
 
     it 'responds to giphy command without args', ->
       testHubot @robot.respond, 'giphy', 'testing'
-      @giphy.respond.should.have.been.calledWith 'testing'
+      giphyPluginInstance.respond.should.have.been.calledWith 'testing'
 
     it 'responds to giphy command with args', ->
       testHubot @robot.respond, 'giphy test', 'testing'
-      @giphy.respond.should.have.been.calledWith 'testing'
+      giphyPluginInstance.respond.should.have.been.calledWith 'testing'
 
     it 'does not respond to non-giphy command without args', ->
       testHubot @robot.respond, 'notgiphy'
-      @giphy.respond.should.not.have.been.called
+      giphyPluginInstance.respond.should.not.have.been.called
 
     it 'does not respond to non-giphy command with args', ->
       testHubot @robot.respond, 'notgiphy test'
-      @giphy.respond.should.not.have.been.called
+      giphyPluginInstance.respond.should.not.have.been.called
 
     it 'does not respond to giphy command with a leading space', ->
       testHubot @robot.respond, ' giphy test'
-      @giphy.respond.should.not.have.been.called
+      giphyPluginInstance.respond.should.not.have.been.called
 
     it 'matches giphy command args', ->
       responder = @robot.respond.getCalls()[0]
