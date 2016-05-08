@@ -88,6 +88,10 @@ describe 'giphy', ->
       testHubot @robot.respond, 'notgiphy test'
       @giphy.respond.should.not.have.been.called
 
+    it 'does not respond to giphy command with a leading space', ->
+      testHubot @robot.respond, ' giphy test'
+      @giphy.respond.should.not.have.been.called
+
     it 'matches giphy command args', ->
       responder = @robot.respond.getCalls()[0]
       match = responder.args[0].exec 'giphy testing'
@@ -363,6 +367,22 @@ describe 'giphy', ->
         @giphy.getRandomResult [], callback
         callback.should.not.have.been.called
 
+    describe '.getUriFromResult', ->
+      it 'returns .images.original.url', ->
+        uri = @giphy.getUriFromResult sampleData
+        should.exist uri
+        uri.should.be.eql sampleData.images.original.url
+
+      it 'does not return a uri for invalid input', ->
+        uri = @giphy.getUriFromResult null
+        should.not.exist uri
+        uri = @giphy.getUriFromResult { }
+        should.not.exist uri
+        uri = @giphy.getUriFromResult { images: { } }
+        should.not.exist uri
+        uri = @giphy.getUriFromResult { images: { original: { } } }
+        should.not.exist uri
+
     describe '.getSearchUri', ->
       it 'searches using args', ->
         state = { args: 'testing' }
@@ -381,10 +401,13 @@ describe 'giphy', ->
       it 'handles the response callback', ->
         state = { msg: 'msg', args: 'testing' }
         @fakes.stub @giphy.api, 'search', (options, callback) -> callback 'error', sampleCollectionResult
-        @fakes.stub @giphy, 'handleResponse'
+        @fakes.stub @giphy, 'handleResponse', (state, err, uriCreator) -> uriCreator()
+        @fakes.stub @giphy, 'getRandomResult'
         @giphy.getSearchUri state
         @giphy.handleResponse.should.have.been.called.once
         @giphy.handleResponse.should.have.been.calledWith state, 'error', sinon.match.func
+        @giphy.getRandomResult.should.have.been.called.once
+        @giphy.getRandomResult.should.have.been.calledWith sampleCollectionResult.data, @giphy.getUriFromResult
 
       it 'calls getRandomUri for empty args', ->
         @fakes.stub @giphy, 'getRandomUri'
@@ -445,6 +468,28 @@ describe 'giphy', ->
         @giphy.getUri state
         @giphy.getHelp.should.have.been.called.once
         @giphy.getHelp.should.have.been.calledWith state
+
+    describe '.handleResponse', ->
+      it 'sends a response when there is no error', ->
+        state = { }
+        uriCreator = @fakes.stub().returns sampleUri
+        @fakes.stub @giphy, 'sendResponse'
+        @giphy.handleResponse state, null, uriCreator
+        uriCreator.should.have.been.called.once
+        @giphy.sendResponse.should.have.been.called.once
+        @giphy.sendResponse.should.have.been.calledWith { uri: sampleUri }
+        should.exist state.uri
+        state.uri.should.eql sampleUri
+
+      it 'sends an error when the state is missing a valid uri', ->
+        state = { msg: @msg }
+        uriCreator = @fakes.stub().returns sampleUri
+        @fakes.stub @giphy, 'error'
+        @giphy.handleResponse state, 'error', uriCreator
+        uriCreator.should.not.have.been.called
+        @giphy.error.should.have.been.called.once
+        @giphy.error.should.have.been.calledWith state.msg, 'error'
+        should.not.exist state.uri
 
     describe '.sendResponse', ->
       beforeEach ->
