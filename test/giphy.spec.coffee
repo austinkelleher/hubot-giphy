@@ -24,17 +24,6 @@ sampleCollectionResult = {
   ]
 }
 
-testHubot = (spy, input, args) ->
-  [callback, other, ...] = spy
-    .getCalls()
-    .filter((x) -> x.args[0].test input)
-    .map((x) -> x.args[1])
-
-  should.not.exist other, "Multiple Matches for #{input}"
-
-  if callback
-    callback.call null, args
-
 describe 'giphy', ->
   beforeEach ->
     @robot = {
@@ -56,6 +45,18 @@ describe 'giphy', ->
       should.exist @giphy
 
   describe 'hubot script', ->
+    # helper function to confirm hubot responds to the correct input
+    testHubot = (spy, input, args) ->
+      [callback, other, ...] = spy
+        .getCalls()
+        .filter((x) -> x.args[0].test input)
+        .map((x) -> x.args[1])
+
+      should.not.exist other, "Multiple Matches for #{input}"
+
+      if callback
+        callback.call null, args
+
     beforeEach ->
       sinon.stub @giphy, 'respond'
 
