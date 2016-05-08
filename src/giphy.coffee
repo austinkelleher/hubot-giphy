@@ -26,13 +26,9 @@
 # Author:
 #   Pat Sissons[patricksissons@gmail.com]
 
-DEBUG = process.env.DEBUG
+giphyApi = require 'giphy-api'
 
-api = require('giphy-api')({
-  https: (process.env.HUBOT_GIPHY_HTTPS is 'true') or false
-  timeout: Number(process.env.HUBOT_GIPHY_TIMEOUT) or null
-  apiKey: process.env.HUBOT_GIPHY_API_KEY
-})
+DEBUG = process.env.DEBUG
 
 extend = (object, properties) ->
   for key, val of properties
@@ -223,6 +219,12 @@ class Giphy
 giphy = new Giphy api
 
 module.exports = (robot) ->
+  api = giphyApi({
+    https: (process.env.HUBOT_GIPHY_HTTPS is 'true') or false
+    timeout: Number(process.env.HUBOT_GIPHY_TIMEOUT) or null
+    apiKey: process.env.HUBOT_GIPHY_API_KEY
+  })
+
   robot.respond /^giphy\s*(.*?)\s*$/, (msg) ->
     giphy.respond msg
 
