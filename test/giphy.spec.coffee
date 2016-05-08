@@ -10,15 +10,17 @@ global.EXPOSE_INSTANCE = true
 
 sampleUri = 'http://giphy.com/example.gif'
 
+sampleData = {
+  images: {
+    original: {
+      url: sampleUri
+    }
+  }
+}
+
 sampleCollectionResult = {
   data: [
-    {
-      images: {
-        original: {
-          url: sampleUri
-        }
-      }
-    },
+    sampleData,
   ]
 }
 
