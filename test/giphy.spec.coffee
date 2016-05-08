@@ -65,8 +65,28 @@ describe 'giphy', ->
     process.env = @env
 
   describe 'test instrumentation', ->
-    it 'has a valid class instance', ->
+    it 'has a valid giphy-api module and instance', ->
+      should.exist giphyApi
+      should.exist @api
+
+    it 'has a valid Giphy class definition and instance', ->
+      should.exist Giphy
       should.exist @giphy
+      should.exist @giphy.api
+      @giphy.api.should.eql @api
+
+    it 'should be able to access the hubot giphy instance', ->
+      should.exist hubotGiphy
+      giphyPluginInstance = hubotGiphy @robot
+      should.exist giphyPluginInstance
+      should.exist giphyPluginInstance.api
+
+    it 'can simulate environment variable values', ->
+      process.env.TESTING = 'testing'
+      process.env.TESTING.should.eql 'testing'
+
+    it 'does not persist environment variable changes', ->
+      should.not.exist process.env.TESTING
 
   describe 'hubot script', ->
     giphyPluginInstance = null
@@ -128,12 +148,24 @@ describe 'giphy', ->
       match[1].should.eql 'testing'
 
   describe 'class', ->
-    it 'has a valid api', ->
-      should.exist @giphy.api
+    describe '.constructor', ->
+      it 'assigns the provided api', ->
+        giphyInstance = new Giphy 'api'
+        should.exist giphyInstance.api
+        giphyInstance.api.should.eql 'api'
 
-    it 'has a valid default endpoint', ->
-      should.exist @giphy.constructor.defaultEndpoint
-      @giphy.constructor.defaultEndpoint.should.have.length.above 0
+      it 'assigns a default endpoint', ->
+        giphyInstance = new Giphy 'api'
+        should.exist giphyInstance.defaultEndpoint
+        giphyInstance.defaultEndpoint.should.eql Giphy.SearchEndpointName
+
+      it 'allows default endpoint override via HUBOT_GIPHY_DEFAULT_ENDPOINT', ->
+        process.env.HUBOT_GIPHY_DEFAULT_ENDPOINT = 'testing'
+        giphyInstance = new Giphy 'api'
+        giphyInstance.defaultEndpoint.should.eql 'testing'
+
+      it 'throws an error if no api is provided', ->
+        should.throw -> new Giphy()
 
     describe '.error', ->
       beforeEach ->
@@ -417,6 +449,22 @@ describe 'giphy', ->
         @giphy.api.search.should.have.been.called.once
         @giphy.api.search.should.have.been.calledWith { q: 'testing', limit: '10' }, sinon.match.func
 
+      it 'uses HUBOT_GIPHY_DEFAULT_LIMIT for the default limit', ->
+        state = { args: 'testing' }
+        process.env.HUBOT_GIPHY_DEFAULT_LIMIT = '123'
+        @fakes.stub @giphy.api, 'search'
+        @giphy.getSearchUri state
+        @giphy.api.search.should.have.been.called.once
+        @giphy.api.search.should.have.been.calledWith { q: 'testing', limit: '123' }, sinon.match.func
+
+      it 'uses HUBOT_GIPHY_DEFAULT_RATING for the default rating', ->
+        state = { args: 'testing' }
+        process.env.HUBOT_GIPHY_DEFAULT_RATING = 'test'
+        @fakes.stub @giphy.api, 'search'
+        @giphy.getSearchUri state
+        @giphy.api.search.should.have.been.called.once
+        @giphy.api.search.should.have.been.calledWith { q: 'testing', rating: 'test' }, sinon.match.func
+
       it 'handles the response callback', ->
         state = { msg: 'msg', args: 'testing' }
         @fakes.stub @giphy.api, 'search', (options, callback) -> callback 'error', sampleCollectionResult
@@ -436,13 +484,159 @@ describe 'giphy', ->
         @giphy.getRandomUri.should.have.callCount 3
 
     describe '.getIdUri', ->
-      it 'has no tests yet'
+      it 'gets a result using a single arg', ->
+        state = { args: 'testing' }
+        @fakes.stub @giphy.api, 'id'
+        @giphy.getIdUri state
+        @giphy.api.id.should.have.been.called.once
+        @giphy.api.id.should.have.been.calledWith [ 'testing' ], sinon.match.func
+
+      it 'gets a result using a multiple args', ->
+        state = { args: 'test1 test2' }
+        @fakes.stub @giphy.api, 'id'
+        @giphy.getIdUri state
+        @giphy.api.id.should.have.been.called.once
+        @giphy.api.id.should.have.been.calledWith [ 'test1', 'test2' ], sinon.match.func
+
+      it 'gets a result using a multiple args with additional spaces', ->
+        state = { args: '   test1   test2   ' }
+        @fakes.stub @giphy.api, 'id'
+        @giphy.getIdUri state
+        @giphy.api.id.should.have.been.called.once
+        @giphy.api.id.should.have.been.calledWith [ 'test1', 'test2' ], sinon.match.func
+
+      it 'handles the response callback', ->
+        state = { msg: 'msg', args: 'testing' }
+        @fakes.stub @giphy.api, 'id', (ids, callback) -> callback 'error', sampleCollectionResult
+        @fakes.stub @giphy, 'handleResponse', (state, err, uriCreator) -> uriCreator()
+        @fakes.stub @giphy, 'getRandomResultData'
+        @giphy.getIdUri state
+        @giphy.handleResponse.should.have.been.called.once
+        @giphy.handleResponse.should.have.been.calledWith state, 'error', sinon.match.func
+        @giphy.getRandomResultData.should.have.been.called.once
+        @giphy.getRandomResultData.should.have.been.calledWith sampleCollectionResult.data, @giphy.getUriFromResultData
+
+      it 'sends and error when no args are provided', ->
+        state = { }
+        @fakes.stub @giphy, 'error'
+        @giphy.getIdUri state
+        state.args = null
+        @giphy.getIdUri state
+        state.args = ''
+        @giphy.getIdUri state
+        @giphy.error.should.have.callCount 3
+        @giphy.error.should.have.been.always.calledWith sinon.match.any, 'No Id Provided'
+
     describe '.getTranslateUri', ->
-      it 'has no tests yet'
+      it 'gets a result using args', ->
+        state = { args: 'testing' }
+        @fakes.stub @giphy.api, 'translate'
+        @giphy.getTranslateUri state
+        @giphy.api.translate.should.have.been.called.once
+        @giphy.api.translate.should.have.been.calledWith { s: 'testing' }, sinon.match.func
+
+      it 'gets a result using args and options', ->
+        state = { args: 'testing', options: { rating: 'test' } }
+        @fakes.stub @giphy.api, 'translate'
+        @giphy.getTranslateUri state
+        @giphy.api.translate.should.have.been.called.once
+        @giphy.api.translate.should.have.been.calledWith { s: 'testing', rating: 'test' }, sinon.match.func
+
+      it 'uses HUBOT_GIPHY_DEFAULT_RATING for the default rating', ->
+        state = { args: 'testing' }
+        process.env.HUBOT_GIPHY_DEFAULT_RATING = 'test'
+        @fakes.stub @giphy.api, 'translate'
+        @giphy.getTranslateUri state
+        @giphy.api.translate.should.have.been.called.once
+        @giphy.api.translate.should.have.been.calledWith { s: 'testing', rating: 'test' }, sinon.match.func
+
+      it 'handles the response callback', ->
+        state = { msg: 'msg', args: 'testing' }
+        @fakes.stub @giphy.api, 'translate', (options, callback) -> callback 'error', sampleResult
+        @fakes.stub @giphy, 'handleResponse', (state, err, uriCreator) -> uriCreator()
+        @fakes.stub @giphy, 'getUriFromResultData'
+        @giphy.getTranslateUri state
+        @giphy.handleResponse.should.have.been.called.once
+        @giphy.handleResponse.should.have.been.calledWith state, 'error', sinon.match.func
+        @giphy.getUriFromResultData.should.have.been.called.once
+        @giphy.getUriFromResultData.should.have.been.calledWith sampleData
+
     describe '.getRandomUri', ->
-      it 'has no tests yet'
+      it 'gets a result using args', ->
+        state = { args: 'testing' }
+        @fakes.stub @giphy.api, 'random'
+        @giphy.getRandomUri state
+        @giphy.api.random.should.have.been.called.once
+        @giphy.api.random.should.have.been.calledWith { tag: 'testing' }, sinon.match.func
+
+      it 'gets a result using args and options', ->
+        state = { args: 'testing', options: { rating: 'test' } }
+        @fakes.stub @giphy.api, 'random'
+        @giphy.getRandomUri state
+        @giphy.api.random.should.have.been.called.once
+        @giphy.api.random.should.have.been.calledWith { tag: 'testing', rating: 'test' }, sinon.match.func
+
+      it 'uses HUBOT_GIPHY_DEFAULT_RATING for the default rating', ->
+        state = { args: 'testing' }
+        process.env.HUBOT_GIPHY_DEFAULT_RATING = 'test'
+        @fakes.stub @giphy.api, 'random'
+        @giphy.getRandomUri state
+        @giphy.api.random.should.have.been.called.once
+        @giphy.api.random.should.have.been.calledWith { tag: 'testing', rating: 'test' }, sinon.match.func
+
+      it 'handles the response callback', ->
+        state = { msg: 'msg', args: 'testing' }
+        @fakes.stub @giphy.api, 'random', (options, callback) -> callback 'error', sampleResult
+        @fakes.stub @giphy, 'handleResponse', (state, err, uriCreator) -> uriCreator()
+        @fakes.stub @giphy, 'getUriFromResultData'
+        @giphy.getRandomUri state
+        @giphy.handleResponse.should.have.been.called.once
+        @giphy.handleResponse.should.have.been.calledWith state, 'error', sinon.match.func
+        @giphy.getUriFromResultData.should.have.been.called.once
+        @giphy.getUriFromResultData.should.have.been.calledWith sampleData
+
     describe '.getTrendingUri', ->
-      it 'has no tests yet'
+      it 'gets a result without options', ->
+        state = { }
+        @fakes.stub @giphy.api, 'trending'
+        @giphy.getTrendingUri state
+        @giphy.api.trending.should.have.been.called.once
+        @giphy.api.trending.should.have.been.calledWith { }, sinon.match.func
+
+      it 'gets a result using options', ->
+        state = { options: { limit: '123', rating: 'test' } }
+        @fakes.stub @giphy.api, 'trending'
+        @giphy.getTrendingUri state
+        @giphy.api.trending.should.have.been.called.once
+        @giphy.api.trending.should.have.been.calledWith { limit: '123', rating: 'test' }, sinon.match.func
+
+      it 'uses HUBOT_GIPHY_DEFAULT_LIMIT for the default limit', ->
+        state = { }
+        process.env.HUBOT_GIPHY_DEFAULT_LIMIT = '123'
+        @fakes.stub @giphy.api, 'trending'
+        @giphy.getTrendingUri state
+        @giphy.api.trending.should.have.been.called.once
+        @giphy.api.trending.should.have.been.calledWith { limit: '123' }, sinon.match.func
+
+      it 'uses HUBOT_GIPHY_DEFAULT_RATING for the default rating', ->
+        state = { }
+        process.env.HUBOT_GIPHY_DEFAULT_RATING = 'test'
+        @fakes.stub @giphy.api, 'trending'
+        @giphy.getTrendingUri state
+        @giphy.api.trending.should.have.been.called.once
+        @giphy.api.trending.should.have.been.calledWith { rating: 'test' }, sinon.match.func
+
+      it 'handles the response callback', ->
+        state = { msg: 'msg' }
+        @fakes.stub @giphy.api, 'trending', (options, callback) -> callback 'error', sampleCollectionResult
+        @fakes.stub @giphy, 'handleResponse', (state, err, uriCreator) -> uriCreator()
+        @fakes.stub @giphy, 'getRandomResultData'
+        @giphy.getTrendingUri state
+        @giphy.handleResponse.should.have.been.called.once
+        @giphy.handleResponse.should.have.been.calledWith state, 'error', sinon.match.func
+        @giphy.getRandomResultData.should.have.been.called.once
+        @giphy.getRandomResultData.should.have.been.calledWith sampleCollectionResult.data, @giphy.getUriFromResultData
+
     describe '.getHelp', ->
       it 'has no tests yet'
 
