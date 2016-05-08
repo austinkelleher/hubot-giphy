@@ -57,10 +57,9 @@ class Giphy
 
   @regex = new RegExp "^\\s*(#{Giphy.endpoints.join('|')}|#{Giphy.HelpName})?\\s*(.*?)$", 'i'
 
-  @defaultEndpoint = process.env.HUBOT_GIPHY_DEFAULT_ENDPOINT or Giphy.SearchEndpointName
-
   constructor: (api) ->
     @api = api
+    @defaultEndpoint = process.env.HUBOT_GIPHY_DEFAULT_ENDPOINT or Giphy.SearchEndpointName
 
   ### istanbul ignore next ###
   log: ->
@@ -89,7 +88,7 @@ class Giphy
     match = @match state.input
 
     if match
-      state.endpoint = match[1] or Giphy.defaultEndpoint
+      state.endpoint = match[1] or @defaultEndpoint
       state.args = match[2]
     else
       state.endpoint = state.args = ''
