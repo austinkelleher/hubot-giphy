@@ -216,14 +216,14 @@ class Giphy
     else
       @error msg, "I Didn't Understand Your Request"
 
-giphy = new Giphy api
-
 module.exports = (robot) ->
   api = giphyApi({
     https: (process.env.HUBOT_GIPHY_HTTPS is 'true') or false
     timeout: Number(process.env.HUBOT_GIPHY_TIMEOUT) or null
     apiKey: process.env.HUBOT_GIPHY_API_KEY
   })
+
+  giphy = new Giphy api
 
   robot.respond /^giphy\s*(.*?)\s*$/, (msg) ->
     giphy.respond msg
