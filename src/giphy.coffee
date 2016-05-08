@@ -11,7 +11,8 @@
 #   HUBOT_GIPHY_DEFAULT_ENDPOINT  default: search
 #
 # Commands:
-#   hubot giphy something interesting - <requests an image relating to "something interesting">
+#   hubot giphy [endpoint] [options...] something interesting - <requests an image relating to "something interesting">
+#   hubot giphy help - show giphy plugin usage
 #
 # Notes:
 #   HUBOT_GIPHY_API_KEY: get your api key @ http://api.giphy.com/
