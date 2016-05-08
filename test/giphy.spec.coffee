@@ -140,14 +140,14 @@ describe 'giphy', ->
         @fakes.stub @giphy, 'sendMessage'
 
       it 'sends the reason if msg and reason exist', ->
-        @giphy.error @msg, 'test'
+        @giphy.error 'msg', 'test'
         @giphy.sendMessage.should.have.been.called.once
-        @giphy.sendMessage.should.have.been.calledWith @msg, 'test'
+        @giphy.sendMessage.should.have.been.calledWith 'msg', 'test'
 
       it 'ignores a null msg or reason', ->
         @giphy.error()
-        @giphy.error @msg
-        @giphy.error @msg, null
+        @giphy.error 'msg'
+        @giphy.error 'msg', null
         @giphy.error null, 'test'
         @giphy.sendMessage.should.not.have.been.called
 
@@ -251,85 +251,85 @@ describe 'giphy', ->
         @giphy.match.should.be.calledWith state.input
 
       it 'handles null match result', ->
-        state = {}
+        state = { }
         @fakes.stub @giphy, 'match', -> null
         @giphy.getEndpoint state
         state.endpoint.should.eql ''
         state.args.should.eql ''
 
       it 'handles endpoint and args match', ->
-        state = {}
+        state = { }
         @fakes.stub @giphy, 'match', -> [ null, 'test1', 'test2' ]
         @giphy.getEndpoint state
         state.endpoint.should.eql 'test1'
         state.args.should.eql 'test2'
 
       it 'handles only args match', ->
-        state = {}
+        state = { }
         @fakes.stub @giphy, 'match', -> [ null, null, 'test2' ]
         @giphy.getEndpoint state
-        state.endpoint.should.eql @giphy.constructor.defaultEndpoint
+        state.endpoint.should.eql @giphy.defaultEndpoint
         state.args.should.eql 'test2'
 
     describe '.getNextOption', ->
       it 'handles empty args', ->
-        state = { args: '', options: {} }
+        state = { args: '', options: { } }
         optionFound = @giphy.getNextOption state
         optionFound.should.be.false
         state.args.should.eql ''
-        state.options.should.eql {}
+        state.options.should.eql { }
 
       it 'handles a single non-switch arg', ->
-        state = { args: 'test1', options: {} }
+        state = { args: 'test1', options: { } }
         optionFound = @giphy.getNextOption state
         optionFound.should.be.false
         state.args.should.eql 'test1'
-        state.options.should.eql {}
+        state.options.should.eql { }
 
       it 'handles multiple non-switch args', ->
-        state = { args: 'test1 test2', options: {} }
+        state = { args: 'test1 test2', options: { } }
         optionFound = @giphy.getNextOption state
         optionFound.should.be.false
         state.args.should.eql 'test1 test2'
-        state.options.should.eql {}
+        state.options.should.eql { }
 
       it 'handles a single numerical switch', ->
-        state = { args: '/test1:1', options: {} }
+        state = { args: '/test1:1', options: { } }
         optionFound = @giphy.getNextOption state
         optionFound.should.be.true
         state.args.should.eql ''
         state.options.should.eql { test1: 1 }
 
       it 'handles a single non-numerical switch', ->
-        state = { args: '/test1:test1', options: {} }
+        state = { args: '/test1:test1', options: { } }
         optionFound = @giphy.getNextOption state
         optionFound.should.be.true
         state.args.should.eql ''
         state.options.should.eql { test1: 'test1' }
 
       it 'handles multiple switches', ->
-        state = { args: '/test1:1 /test2:2', options: {} }
+        state = { args: '/test1:1 /test2:2', options: { } }
         optionFound = @giphy.getNextOption state
         optionFound.should.be.true
         state.args.should.eql '/test2:2'
         state.options.should.eql { test1: 1 }
 
       it 'handles switches before args', ->
-        state = { args: '/test1:1 test2', options: {} }
+        state = { args: '/test1:1 test2', options: { } }
         optionFound = @giphy.getNextOption state
         optionFound.should.be.true
         state.args.should.eql 'test2'
         state.options.should.eql { test1: 1 }
 
       it 'handles switches after args', ->
-        state = { args: 'test1 /test2:2', options: {} }
+        state = { args: 'test1 /test2:2', options: { } }
         optionFound = @giphy.getNextOption state
         optionFound.should.be.true
         state.args.should.eql 'test1'
         state.options.should.eql { test2: 2 }
 
       it 'handles mixed switches and args', ->
-        state = { args: '/test1:1 test 2 /test3:test3', options: {} }
+        state = { args: '/test1:1 test 2 /test3:test3', options: { } }
         optionFound = @giphy.getNextOption state
         optionFound.should.be.true
         state.args.should.eql 'test 2 /test3:test3'
@@ -343,7 +343,7 @@ describe 'giphy', ->
         @giphy.getNextOption.should.be.called.once
         @giphy.getNextOption.should.be.calledWith state
         should.exist state.options
-        state.options.should.eql {}
+        state.options.should.eql { }
 
       it 'handles true then false result from getNextOption', ->
         state = { args: 'testing' }
@@ -353,7 +353,7 @@ describe 'giphy', ->
         @giphy.getNextOption.should.be.called.twice
         @giphy.getNextOption.should.be.calledWith state
         should.exist state.options
-        state.options.should.eql {}
+        state.options.should.eql { }
 
       it 'parses mixed switches and args', ->
         state = { args: '/test1:1 test 2 /test3:test3' }
@@ -362,10 +362,10 @@ describe 'giphy', ->
         should.exist state.options
         state.options.should.eql { test1: 1, test3: 'test3' }
 
-    describe '.getRandomResult', ->
+    describe '.getRandomResultData', ->
       it 'calls the callback with a single value collection', ->
         callback = @fakes.stub().returns 'result'
-        result = @giphy.getRandomResult [ 'testing' ], callback
+        result = @giphy.getRandomResultData [ 'testing' ], callback
         callback.should.have.been.called.once
         callback.should.have.been.calledWith 'testing'
         should.exist result
@@ -373,7 +373,7 @@ describe 'giphy', ->
 
       it 'calls the callback with a multiple value collection', ->
         callback = @fakes.stub().returns 'result'
-        result = @giphy.getRandomResult [ 'testing1', 'testing2' ], callback
+        result = @giphy.getRandomResultData [ 'testing1', 'testing2' ], callback
         callback.should.have.been.called.once
         callback.should.have.been.calledWith sinon.match('testing1').or sinon.match('testing2')
         should.exist result
@@ -381,56 +381,56 @@ describe 'giphy', ->
 
       it 'handles null or empty data', ->
         callback = sinon.spy()
-        @giphy.getRandomResult undefined, callback
-        @giphy.getRandomResult null, callback
-        @giphy.getRandomResult [], callback
+        @giphy.getRandomResultData undefined, callback
+        @giphy.getRandomResultData null, callback
+        @giphy.getRandomResultData [], callback
         callback.should.not.have.been.called
 
-    describe '.getUriFromResult', ->
-      it 'returns .images.original.url', ->
-        uri = @giphy.getUriFromResult sampleData
+    describe '.getUriFromResultData', ->
+      it 'returns .data.images.original.url', ->
+        uri = @giphy.getUriFromResultData sampleData
         should.exist uri
         uri.should.be.eql sampleData.images.original.url
 
       it 'does not return a uri for invalid input', ->
-        uri = @giphy.getUriFromResult null
+        uri = @giphy.getUriFromResultData null
         should.not.exist uri
-        uri = @giphy.getUriFromResult { }
+        uri = @giphy.getUriFromResultData { }
         should.not.exist uri
-        uri = @giphy.getUriFromResult { images: { } }
+        uri = @giphy.getUriFromResultData { images: { } }
         should.not.exist uri
-        uri = @giphy.getUriFromResult { images: { original: { } } }
+        uri = @giphy.getUriFromResultData { images: { original: { } } }
         should.not.exist uri
 
     describe '.getSearchUri', ->
-      it 'searches using args', ->
+      it 'gets a result using args', ->
         state = { args: 'testing' }
         @fakes.stub @giphy.api, 'search'
         @giphy.getSearchUri state
         @giphy.api.search.should.have.been.called.once
         @giphy.api.search.should.have.been.calledWith { q: 'testing' }, sinon.match.func
 
-      it 'searches using args and options', ->
-        state = { args: 'testing', options: { limit: 10 } }
+      it 'gets a result using args and options', ->
+        state = { args: 'testing', options: { limit: '10' } }
         @fakes.stub @giphy.api, 'search'
         @giphy.getSearchUri state
         @giphy.api.search.should.have.been.called.once
-        @giphy.api.search.should.have.been.calledWith { q: 'testing', limit: 10 }, sinon.match.func
+        @giphy.api.search.should.have.been.calledWith { q: 'testing', limit: '10' }, sinon.match.func
 
       it 'handles the response callback', ->
         state = { msg: 'msg', args: 'testing' }
         @fakes.stub @giphy.api, 'search', (options, callback) -> callback 'error', sampleCollectionResult
         @fakes.stub @giphy, 'handleResponse', (state, err, uriCreator) -> uriCreator()
-        @fakes.stub @giphy, 'getRandomResult'
+        @fakes.stub @giphy, 'getRandomResultData'
         @giphy.getSearchUri state
         @giphy.handleResponse.should.have.been.called.once
         @giphy.handleResponse.should.have.been.calledWith state, 'error', sinon.match.func
-        @giphy.getRandomResult.should.have.been.called.once
-        @giphy.getRandomResult.should.have.been.calledWith sampleCollectionResult.data, @giphy.getUriFromResult
+        @giphy.getRandomResultData.should.have.been.called.once
+        @giphy.getRandomResultData.should.have.been.calledWith sampleCollectionResult.data, @giphy.getUriFromResultData
 
       it 'calls getRandomUri for empty args', ->
         @fakes.stub @giphy, 'getRandomUri'
-        @giphy.getSearchUri {}
+        @giphy.getSearchUri { }
         @giphy.getSearchUri { args: null }
         @giphy.getSearchUri { args: '' }
         @giphy.getRandomUri.should.have.callCount 3
@@ -449,7 +449,7 @@ describe 'giphy', ->
     describe '.getUri', ->
       it 'handles a null endpoint', ->
         @fakes.stub @giphy, 'error'
-        @giphy.getUri {}
+        @giphy.getUri { }
         @giphy.error.should.have.been.called.once
 
       it 'handles a search endpoint', ->
@@ -527,22 +527,24 @@ describe 'giphy', ->
         @giphy.sendMessage.should.be.calledWith 'msg', 'uri'
 
       it 'handles state without a uri', ->
-        @giphy.sendResponse {}
+        @giphy.sendResponse { }
         @giphy.error.should.be.called.once
 
     describe '.sendMessage', ->
       it 'sends a message when msg and message are valid', ->
-        @giphy.sendMessage @msg, 'testing'
-        @msg.send.should.be.called.once
-        @msg.send.should.be.calledWith 'testing'
+        msg = { send: @fakes.stub() }
+        @giphy.sendMessage msg, 'testing'
+        msg.send.should.be.called.once
+        msg.send.should.be.calledWith 'testing'
 
       it 'ignores calls when msg or message is null', ->
+        msg = { send: @fakes.stub() }
         @giphy.sendMessage()
-        @giphy.sendMessage @msg
-        @giphy.sendMessage @msg, null
+        @giphy.sendMessage msg
+        @giphy.sendMessage msg, null
         @giphy.sendMessage undefined, 'testing'
         @giphy.sendMessage null, 'testing'
-        @msg.send.should.not.have.been.called
+        msg.send.should.not.have.been.called
 
     describe '.respond', ->
       beforeEach ->
@@ -568,7 +570,7 @@ describe 'giphy', ->
         @giphy.error.should.have.been.called.twice
 
       it 'handles null giphy command args', ->
-        @giphy.respond {}
+        @giphy.respond { }
         @giphy.respond { match: null }
         @giphy.respond { match: [] }
         @giphy.respond { match: [ null ] }
