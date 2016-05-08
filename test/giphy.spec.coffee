@@ -34,29 +34,35 @@ sampleCollectionResult = {
 }
 
 describe 'giphy', ->
+  before ->
+    # keep a copy of the original environment so we can restore it
+    @env = process.env
+
   beforeEach ->
     # this will hold all of our fakes so we can restore everything with a single call
     @fakes = sinon.collection
 
+    # clone the original environment so we can inject variables
+    process.env = extend { }, @env
+
     # create a fake hubot robot
-    @robot = {
-      respond: @fakes.spy()
-    }
+    @robot = { respond: @fakes.spy() }
 
-    # create a fake hubot message
-    @msg = {
-      send: @fakes.spy()
-    }
-
-    # create a new giphy plugin instance
-    @giphy = giphy @robot
+    # create a new test giphy api
+    @api = giphyApi()
+    # create a new test giphy instance
+    @giphy = new Giphy @api
 
     # protect against any real XHR attempts
-    @fakes.stub @giphy.api, '_request', (options, callback) -> callback 'XHR Attempted', null
+    @fakes.stub @api, '_request', (options, callback) -> callback 'XHR Attempted', null
 
   afterEach ->
     # restore all fakes
     @fakes.restore()
+
+  after ->
+    # restore original environment
+    process.env = @env
 
   describe 'test instrumentation', ->
     it 'has a valid class instance', ->
