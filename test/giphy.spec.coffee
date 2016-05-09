@@ -754,6 +754,12 @@ describe 'giphy', ->
         @giphy.sendMessage.should.be.called.once
         @giphy.sendMessage.should.be.calledWith 'msg', 'uri'
 
+      it 'sends an inline image response when HUBOT_GIPHY_INLINE_IMAGES is set', ->
+        process.env.HUBOT_GIPHY_INLINE_IMAGES = true
+        @giphy.sendResponse { msg: 'msg', uri: 'uri' }
+        @giphy.sendMessage.should.be.called.once
+        @giphy.sendMessage.should.be.calledWith 'msg', '![giphy](uri)'
+
       it 'handles state without a uri', ->
         @giphy.sendResponse { }
         @giphy.error.should.be.called.once

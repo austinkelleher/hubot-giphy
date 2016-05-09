@@ -212,7 +212,7 @@ Example:
   sendResponse: (state) ->
     @log 'sendResponse:', state
     if state.uri
-      @sendMessage state.msg, state.uri
+      @sendMessage state.msg, if process.env.HUBOT_GIPHY_INLINE_IMAGES then "![giphy](#{state.uri})" else state.uri
     else
       @error state.msg, 'No Results Found'
 
