@@ -78,8 +78,10 @@ Example:
 """.trim()
 
   ### istanbul ignore next ###
-  log: ->
-    console.log.apply this, arguments if DEBUG
+  log: (msg, state) ->
+    state = extend({}, state)
+    delete state.msg
+    console.log.call this, msg, state if DEBUG
 
   error: (msg, reason) ->
     if msg and reason
