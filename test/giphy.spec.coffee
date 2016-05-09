@@ -184,12 +184,23 @@ describe 'giphy', ->
         @giphy.sendMessage.should.not.have.been.called
 
     describe '.createState', ->
-      it 'returns a valid state instance', ->
+      it 'returns a valid state instance for non-empty args', ->
         msg = { match: [ null, 'test' ] }
         state = @giphy.createState msg
         should.exist state
         state.msg.should.eql msg
         state.input.should.eql msg.match[1]
+        should.equal state.endpoint, undefined
+        should.equal state.args, undefined
+        should.equal state.options, undefined
+        should.equal state.uri, undefined
+
+      it 'returns a valid state instance for empty args', ->
+        msg = { match: [ null, null ] }
+        state = @giphy.createState msg
+        should.exist state
+        state.msg.should.eql msg
+        state.input.should.eql ''
         should.equal state.endpoint, undefined
         should.equal state.args, undefined
         should.equal state.options, undefined
