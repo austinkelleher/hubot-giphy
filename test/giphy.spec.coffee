@@ -325,14 +325,7 @@ describe 'giphy', ->
         state.args.should.eql 'test1 test2'
         state.options.should.eql { }
 
-      it 'handles a single numerical switch', ->
-        state = { args: '/test1:1', options: { } }
-        optionFound = @giphy.getNextOption state
-        optionFound.should.be.true
-        state.args.should.eql ''
-        state.options.should.eql { test1: 1 }
-
-      it 'handles a single non-numerical switch', ->
+      it 'handles a single switch', ->
         state = { args: '/test1:test1', options: { } }
         optionFound = @giphy.getNextOption state
         optionFound.should.be.true
@@ -340,32 +333,32 @@ describe 'giphy', ->
         state.options.should.eql { test1: 'test1' }
 
       it 'handles multiple switches', ->
-        state = { args: '/test1:1 /test2:2', options: { } }
+        state = { args: '/test1:test1 /test2:test2', options: { } }
         optionFound = @giphy.getNextOption state
         optionFound.should.be.true
-        state.args.should.eql '/test2:2'
-        state.options.should.eql { test1: 1 }
+        state.args.should.eql '/test2:test2'
+        state.options.should.eql { test1: 'test1' }
 
       it 'handles switches before args', ->
-        state = { args: '/test1:1 test2', options: { } }
+        state = { args: '/test1:test1 test2', options: { } }
         optionFound = @giphy.getNextOption state
         optionFound.should.be.true
         state.args.should.eql 'test2'
-        state.options.should.eql { test1: 1 }
+        state.options.should.eql { test1: 'test1' }
 
       it 'handles switches after args', ->
-        state = { args: 'test1 /test2:2', options: { } }
+        state = { args: 'test1 /test2:test2', options: { } }
         optionFound = @giphy.getNextOption state
         optionFound.should.be.true
         state.args.should.eql 'test1'
-        state.options.should.eql { test2: 2 }
+        state.options.should.eql { test2: 'test2' }
 
       it 'handles mixed switches and args', ->
-        state = { args: '/test1:1 test 2 /test3:test3', options: { } }
+        state = { args: '/test1:test1 test 2 /test3:test3', options: { } }
         optionFound = @giphy.getNextOption state
         optionFound.should.be.true
         state.args.should.eql 'test 2 /test3:test3'
-        state.options.should.eql { test1: 1 }
+        state.options.should.eql { test1: 'test1' }
 
     describe '.getOptions', ->
       it 'handles false result from getNextOption', ->
@@ -392,7 +385,7 @@ describe 'giphy', ->
         @giphy.getOptions state
         state.args.should.eql 'test 2'
         should.exist state.options
-        state.options.should.eql { test1: 1, test3: 'test3' }
+        state.options.should.eql { test1: '1', test3: 'test3' }
 
     describe '.getRandomResultData', ->
       it 'calls the callback with a single value collection', ->
