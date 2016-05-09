@@ -139,16 +139,14 @@ describe 'giphy', ->
       giphyPluginInstance.respond.should.have.been.calledWith 'testing'
 
     it 'matches giphy command args', ->
-      responder = robot.respond.getCalls()[0]
-      match = responder.args[0].exec 'giphy testing'
+      match = robot.respond.lastCall.args[0].exec 'giphy testing'
       should.exist match
       match.should.have.lengthOf 2
       match[0].should.eql 'giphy testing'
       match[1].should.eql 'testing'
 
     it 'matches giphy command args and trims spaces', ->
-      responder = robot.respond.getCalls()[0]
-      match = responder.args[0].exec 'giphy     testing     '
+      match = robot.respond.lastCall.args[0].exec 'giphy     testing     '
       should.exist match
       match.should.have.lengthOf 2
       match[0].should.eql 'giphy     testing     '
@@ -729,7 +727,7 @@ describe 'giphy', ->
         @giphy.handleResponse state, 'error', uriCreator
         uriCreator.should.not.have.been.called
         @giphy.error.should.have.been.called.once
-        @giphy.error.should.have.been.calledWith state.msg, 'error'
+        @giphy.error.should.have.been.calledWith state.msg, 'giphy-api Error: error'
         should.not.exist state.uri
 
     describe '.sendResponse', ->
