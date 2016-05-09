@@ -221,7 +221,9 @@ Example:
       msg.send message
 
   respond: (msg) ->
-    if msg and msg.match and msg.match[1]
+    # we must check the match.length >= 2 here because just checking the value
+    # match[2] could give us a false negative since empty string resolves to false
+    if msg and msg.match and msg.match.length >= 2
       state = @createState msg
 
       @getEndpoint state
