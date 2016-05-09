@@ -138,18 +138,6 @@ describe 'giphy', ->
       testHubot robot.respond, 'giphy test', 'testing'
       giphyPluginInstance.respond.should.have.been.calledWith 'testing'
 
-    it 'does not respond to non-giphy command without args', ->
-      testHubot robot.respond, 'notgiphy'
-      giphyPluginInstance.respond.should.not.have.been.called
-
-    it 'does not respond to non-giphy command with args', ->
-      testHubot robot.respond, 'notgiphy test'
-      giphyPluginInstance.respond.should.not.have.been.called
-
-    it 'does not respond to giphy command with a leading space', ->
-      testHubot robot.respond, ' giphy test'
-      giphyPluginInstance.respond.should.not.have.been.called
-
     it 'matches giphy command args', ->
       responder = robot.respond.getCalls()[0]
       match = responder.args[0].exec 'giphy testing'
