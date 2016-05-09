@@ -113,8 +113,6 @@ Example:
     regex = /\/(\w+):(\w+)/
     optionFound = false
     state.args = state.args.replace regex, (match, key, val) ->
-      if !isNaN(Number(val))
-        val = Number(val)
       state.options[key] = val
       optionFound = true
       ''
