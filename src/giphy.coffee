@@ -207,7 +207,7 @@ Example:
   handleResponse: (state, err, uriCreator) ->
     @log 'handleResponse:', state
     if err
-      @error state.msg, err
+      @error state.msg, "giphy-api Error: #{err}"
     else
       state.uri = uriCreator.call this
       @sendResponse state
