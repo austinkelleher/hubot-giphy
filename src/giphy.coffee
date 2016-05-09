@@ -32,8 +32,9 @@ DEBUG = process.env.DEBUG
 
 # utility method for extending an object definition
 extend = (object, properties) ->
-  for key, val of properties
-    object[key] = val if val
+  object = object or { }
+  for key, val of properties or { }
+    object[key] = val if val or val == ''
   object
 
 # utility method for merging two objects
@@ -63,7 +64,7 @@ class Giphy
 
     @api = api
     @defaultEndpoint = process.env.HUBOT_GIPHY_DEFAULT_ENDPOINT or Giphy.SearchEndpointName
-    @helpText = "
+    @helpText = """
 giphy [endpoint] [options...] [args]
 
 endpoints: search, id, translate, random, trending
@@ -74,11 +75,13 @@ options can be specified using /option:value
 
 Example:
   giphy search /limit:100 /offset:50 /rating:pg something to search for
-".trim()
+""".trim()
 
   ### istanbul ignore next ###
-  log: ->
-    console.log.apply this, arguments if DEBUG
+  log: (msg, state) ->
+    state = extend({}, state)
+    delete state.msg
+    console.log.call this, msg, state if DEBUG
 
   error: (msg, reason) ->
     if msg and reason
@@ -204,7 +207,7 @@ Example:
   handleResponse: (state, err, uriCreator) ->
     @log 'handleResponse:', state
     if err
-      @error state.msg, err
+      @error state.msg, "giphy-api Error: #{err}"
     else
       state.uri = uriCreator.call this
       @sendResponse state
@@ -212,7 +215,8 @@ Example:
   sendResponse: (state) ->
     @log 'sendResponse:', state
     if state.uri
-      @sendMessage state.msg, state.uri
+      message = if process.env.HUBOT_GIPHY_INLINE_IMAGES then "![giphy](#{state.uri})" else state.uri
+      @sendMessage state.msg, message
     else
       @error state.msg, 'No Results Found'
 
@@ -242,7 +246,7 @@ module.exports = (robot) ->
 
   giphy = new Giphy api
 
-  robot.respond /^giphy\s*(.*?)\s*$/, (msg) ->
+  robot.respond /giphy\s*(.*?)\s*$/, (msg) ->
     giphy.respond msg
 
   # this allows testing to instrument the giphy instance
