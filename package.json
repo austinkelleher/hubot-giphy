@@ -48,9 +48,6 @@
   },
   "main": "index.coffee",
   "scripts": {
-    "test": "gulp test:npm",
-    "mocha": "mocha --compilers coffee:coffee-script/register --recursive --reporter spec ./test/**/*.spec.coffee",
-    "debug": "mocha --compilers coffee:coffee-script/register --recursive --reporter spec ./test/**/*.spec.coffee --debug-brk",
-    "watch": "mocha --compilers coffee:coffee-script/register --recursive --reporter spec ./test/**/*.spec.coffee --watch"
+    "test": "gulp test:npm"
   }
 }
