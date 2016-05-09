@@ -45,9 +45,6 @@ describe 'giphy', ->
     # clone the original environment so we can inject variables
     process.env = extend { }, @env
 
-    # create a fake hubot robot
-    @robot = { respond: @fakes.spy() }
-
     # create a new test giphy api
     @api = giphyApi()
     # create a new test giphy instance
@@ -76,8 +73,9 @@ describe 'giphy', ->
       @giphy.api.should.eql @api
 
     it 'should be able to access the hubot giphy instance', ->
+      robot = { respond: @fakes.spy() }
       should.exist hubotGiphy
-      giphyPluginInstance = hubotGiphy @robot
+      giphyPluginInstance = hubotGiphy robot
       should.exist giphyPluginInstance
       should.exist giphyPluginInstance.api
 
@@ -90,6 +88,7 @@ describe 'giphy', ->
 
   describe 'hubot script', ->
     giphyPluginInstance = null
+    robot = null
 
     # helper function to confirm hubot responds to the correct input
     testHubot = (spy, input, args) ->
@@ -104,35 +103,36 @@ describe 'giphy', ->
         callback.call null, args
 
     beforeEach ->
-      giphyPluginInstance = hubotGiphy @robot
+      robot = { respond: @fakes.spy() }
+      giphyPluginInstance = hubotGiphy robot
       @fakes.stub giphyPluginInstance.api, '_request', (options, callback) -> callback 'XHR Attempted', null
       @fakes.stub giphyPluginInstance, 'respond'
 
     it 'has an active respond trigger', ->
-      @robot.respond.should.have.been.called.once
+      robot.respond.should.have.been.called.once
 
     it 'responds to giphy command without args', ->
-      testHubot @robot.respond, 'giphy', 'testing'
+      testHubot robot.respond, 'giphy', 'testing'
       giphyPluginInstance.respond.should.have.been.calledWith 'testing'
 
     it 'responds to giphy command with args', ->
-      testHubot @robot.respond, 'giphy test', 'testing'
+      testHubot robot.respond, 'giphy test', 'testing'
       giphyPluginInstance.respond.should.have.been.calledWith 'testing'
 
     it 'does not respond to non-giphy command without args', ->
-      testHubot @robot.respond, 'notgiphy'
+      testHubot robot.respond, 'notgiphy'
       giphyPluginInstance.respond.should.not.have.been.called
 
     it 'does not respond to non-giphy command with args', ->
-      testHubot @robot.respond, 'notgiphy test'
+      testHubot robot.respond, 'notgiphy test'
       giphyPluginInstance.respond.should.not.have.been.called
 
     it 'does not respond to giphy command with a leading space', ->
-      testHubot @robot.respond, ' giphy test'
+      testHubot robot.respond, ' giphy test'
       giphyPluginInstance.respond.should.not.have.been.called
 
     it 'matches giphy command args', ->
-      responder = @robot.respond.getCalls()[0]
+      responder = robot.respond.getCalls()[0]
       match = responder.args[0].exec 'giphy testing'
       should.exist match
       match.should.have.lengthOf 2
@@ -140,7 +140,7 @@ describe 'giphy', ->
       match[1].should.eql 'testing'
 
     it 'matches giphy command args and trims spaces', ->
-      responder = @robot.respond.getCalls()[0]
+      responder = robot.respond.getCalls()[0]
       match = responder.args[0].exec 'giphy     testing     '
       should.exist match
       match.should.have.lengthOf 2
