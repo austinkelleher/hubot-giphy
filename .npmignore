@@ -4,11 +4,15 @@
 /test
 
 .babelrc
+.coffeelintignore
+.env
 .eslintignore
 .eslintrc
 .gitignore
 .npmignore
 .travis.yml
 
+coffeelint.json
 gulpfile.babel.js
+jsconfig.json
 npm-debug.log
