@@ -88,7 +88,7 @@ Example:
     if msg
       state = {
         msg: msg
-        input: msg.match[1]
+        input: msg.match[1] or ''
         endpoint: undefined
         args: undefined
         options: undefined
