@@ -394,7 +394,7 @@ describe 'giphy', ->
         callback.should.have.been.called.once
         callback.should.have.been.calledWith 'testing'
         should.exist result
-        result.should.be.eql 'result'
+        result.should.eql 'result'
 
       it 'calls the callback with a multiple value collection', ->
         callback = @fakes.stub().returns 'result'
@@ -402,7 +402,7 @@ describe 'giphy', ->
         callback.should.have.been.called.once
         callback.should.have.been.calledWith sinon.match('testing1').or sinon.match('testing2')
         should.exist result
-        result.should.be.eql 'result'
+        result.should.eql 'result'
 
       it 'handles null or empty data', ->
         callback = sinon.spy()
@@ -415,7 +415,7 @@ describe 'giphy', ->
       it 'returns .data.images.original.url', ->
         uri = @giphy.getUriFromResultData sampleData
         should.exist uri
-        uri.should.be.eql sampleData.images.original.url
+        uri.should.eql sampleData.images.original.url
 
       it 'does not return a uri for invalid input', ->
         uri = @giphy.getUriFromResultData null
