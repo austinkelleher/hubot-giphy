@@ -810,96 +810,123 @@ describe 'giphy', ->
         @giphy.error.should.have.callCount 4
 
   describe 'plugin api integration', ->
+    PassThrough = require 'stream'
+      .PassThrough
     giphyPluginInstance = null
     regex = null
     callback = null
     msg = null
 
-    testInput = (fakes, input, result, options) ->
-      fakes.stub giphyPluginInstance.api, '_request', (options, callback) -> callback null, result
-      msg.match = regex.exec input
-      callback.call null, msg
+    validate = (done, options) ->
       if typeof options is 'function'
         options.call null
       else
         giphyPluginInstance.api._request.should.have.been.called.once
-        requestOptions = giphyPluginInstance.api._request.getCalls()[0].args[0]
-        should.exist requestOptions
-        requestOptions.should.eql options
+        giphyPluginInstance.api.httpService.get.should.have.been.called.once
+        giphyPluginInstance.api._request.should.be.calledWith sinon.match options
         msg.send.should.have.been.called.once
         msg.send.should.have.been.calledWith sampleUri
+      done()
+
+    testInput = (done, fakes, input, result, options) ->
+      # create fake request and response objects
+      req = new PassThrough()
+      res = new PassThrough()
+
+      # preload the response with the provided result
+      res.write JSON.stringify result
+      res.end()
+
+      # spy on the _request so we can test the options passed in
+      fakes.spy giphyPluginInstance.api, '_request'
+      # stub the http.get so we don't send out any network calls
+      fakes
+        .stub giphyPluginInstance.api.httpService, 'get', (requestOptions, callback) ->
+          callback(res)
+          res.on 'end', ->
+            validate done, options
+          req
+
+      # prepare the match data and call the plugin callback
+      msg.match = regex.exec input
+      callback.call null, msg
+
+      if typeof options is 'function'
+        options.call null
+        done()
+      else
+        # we use .callCount 0 here because the error shows us what the call args were
+        msg.send.should.have.callCount 0
 
     beforeEach ->
       robot = { respond: @fakes.spy() }
-      giphyPluginInstance = hubotGiphy robot
-      responder = robot.respond.getCalls()[0]
-      regex = responder.args[0]
-      callback = responder.args[1]
       msg = { send: @fakes.spy() }
+      giphyPluginInstance = hubotGiphy robot
+      [ regex, callback ] = robot.respond.lastCall.args
 
-    it 'sends a response for "giphy search"', ->
-      testInput @fakes, 'giphy search', sampleResult, { api: 'gifs', endpoint: 'random', query: { } }
+    it 'sends a response for "giphy search"', (done) ->
+      testInput done, @fakes, 'giphy search', sampleResult, { api: 'gifs', endpoint: 'random', query: { } }
 
-    it 'sends a response for "giphy search test"', ->
-      testInput @fakes, 'giphy search test', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { q: 'test' } }
+    it 'sends a response for "giphy search test"', (done) ->
+      testInput done, @fakes, 'giphy search test', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { q: 'test' } }
 
-    it 'sends a response for "giphy search test1 test2"', ->
-      testInput @fakes, 'giphy search test1 test2', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { q: 'test1 test2' } }
+    it 'sends a response for "giphy search test1 test2"', (done) ->
+      testInput done, @fakes, 'giphy search test1 test2', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { q: 'test1 test2' } }
 
-    it 'sends a response for "giphy id"', ->
-      testInput @fakes, 'giphy id', sampleCollectionResult, ->
+    it 'sends a response for "giphy id"', (done) ->
+      testInput done, @fakes, 'giphy id', sampleCollectionResult, ->
         msg.send.should.have.been.calledWith 'No Id Provided'
 
-    it 'sends a response for "giphy id test"', ->
-      testInput @fakes, 'giphy id test', sampleCollectionResult, { api: 'gifs', query: { ids: 'test' } }
+    it 'sends a response for "giphy id test"', (done) ->
+      testInput done, @fakes, 'giphy id test', sampleCollectionResult, { api: 'gifs', query: { ids: 'test' } }
 
-    it 'sends a response for "giphy id test1 test2"', ->
-      testInput @fakes, 'giphy id test1 test2', sampleCollectionResult, { api: 'gifs', query: { ids: 'test1,test2' } }
+    it 'sends a response for "giphy id test1 test2"', (done) ->
+      testInput done, @fakes, 'giphy id test1 test2', sampleCollectionResult, { api: 'gifs', query: { ids: 'test1,test2' } }
 
-    it 'sends a response for "giphy translate"', ->
-      testInput @fakes, 'giphy translate', sampleResult, { api: 'gifs', endpoint: 'translate', query: { } }
+    it 'sends a response for "giphy translate"', (done) ->
+      testInput done, @fakes, 'giphy translate', sampleResult, { api: 'gifs', endpoint: 'translate', query: { } }
 
-    it 'sends a response for "giphy translate test"', ->
-      testInput @fakes, 'giphy translate test', sampleResult, { api: 'gifs', endpoint: 'translate', query: { s: 'test' } }
+    it 'sends a response for "giphy translate test"', (done) ->
+      testInput done, @fakes, 'giphy translate test', sampleResult, { api: 'gifs', endpoint: 'translate', query: { s: 'test' } }
 
-    it 'sends a response for "giphy translate test1 test2"', ->
-      testInput @fakes, 'giphy translate test1 test2', sampleResult, { api: 'gifs', endpoint: 'translate', query: { s: 'test1 test2' } }
+    it 'sends a response for "giphy translate test1 test2"', (done) ->
+      testInput done, @fakes, 'giphy translate test1 test2', sampleResult, { api: 'gifs', endpoint: 'translate', query: { s: 'test1 test2' } }
 
-    it 'sends a response for "giphy random"', ->
-      testInput @fakes, 'giphy random', sampleResult, { api: 'gifs', endpoint: 'random', query: { } }
+    it 'sends a response for "giphy random"', (done) ->
+      testInput done, @fakes, 'giphy random', sampleResult, { api: 'gifs', endpoint: 'random', query: { } }
 
-    it 'sends a response for "giphy random test"', ->
-      testInput @fakes, 'giphy random test', sampleResult, { api: 'gifs', endpoint: 'random', query: { tag: 'test' } }
+    it 'sends a response for "giphy random test"', (done) ->
+      testInput done, @fakes, 'giphy random test', sampleResult, { api: 'gifs', endpoint: 'random', query: { tag: 'test' } }
 
-    it 'sends a response for "giphy random test1 test2"', ->
-      testInput @fakes, 'giphy random test1 test2', sampleResult, { api: 'gifs', endpoint: 'random', query: { tag: 'test1 test2' } }
+    it 'sends a response for "giphy random test1 test2"', (done) ->
+      testInput done, @fakes, 'giphy random test1 test2', sampleResult, { api: 'gifs', endpoint: 'random', query: { tag: 'test1 test2' } }
 
-    it 'sends a response for "giphy trending"', ->
-      testInput @fakes, 'giphy trending', sampleCollectionResult, { api: 'gifs', endpoint: 'trending' }
+    it 'sends a response for "giphy trending"', (done) ->
+      testInput done, @fakes, 'giphy trending', sampleCollectionResult, { api: 'gifs', endpoint: 'trending' }
 
-    it 'sends a response for "giphy trending test"', ->
-      testInput @fakes, 'giphy trending test', sampleCollectionResult, { api: 'gifs', endpoint: 'trending' }
+    it 'sends a response for "giphy trending test"', (done) ->
+      testInput done, @fakes, 'giphy trending test', sampleCollectionResult, { api: 'gifs', endpoint: 'trending' }
 
-    it 'sends a response for "giphy trending test1 test2"', ->
-      testInput @fakes, 'giphy trending test1 test2', sampleCollectionResult, { api: 'gifs', endpoint: 'trending' }
+    it 'sends a response for "giphy trending test1 test2"', (done) ->
+      testInput done, @fakes, 'giphy trending test1 test2', sampleCollectionResult, { api: 'gifs', endpoint: 'trending' }
 
-    it 'sends a response for "giphy"', ->
-      testInput @fakes, 'giphy', sampleResult, { api: 'gifs', endpoint: 'random', query: { } }
+    it 'sends a response for "giphy"', (done) ->
+      testInput done, @fakes, 'giphy', sampleResult, { api: 'gifs', endpoint: 'random', query: { } }
 
-    it 'sends a response for "giphy test"', ->
-      testInput @fakes, 'giphy test', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { q: 'test' } }
+    it 'sends a response for "giphy test"', (done) ->
+      testInput done, @fakes, 'giphy test', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { q: 'test' } }
 
-    it 'sends a response for "giphy test1 test2"', ->
-      testInput @fakes, 'giphy test1 test2', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { q: 'test1 test2' } }
+    it 'sends a response for "giphy test1 test2"', (done) ->
+      testInput done, @fakes, 'giphy test1 test2', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { q: 'test1 test2' } }
 
-    it 'sends a response for "giphy search /api:stickers test"', ->
-      testInput @fakes, 'giphy search /api:stickers test', sampleCollectionResult, { api: 'stickers', endpoint: 'search', query: { api: 'stickers', q: 'test' } }
+    it 'sends a response for "giphy search /api:stickers test"', (done) ->
+      testInput done, @fakes, 'giphy search /api:stickers test', sampleCollectionResult, { api: 'stickers', endpoint: 'search', query: { api: 'stickers', q: 'test' } }
 
-    it 'sends a response for "giphy search /rating:pg test"', ->
-      testInput @fakes, 'giphy search /rating:pg test', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { rating: 'pg', q: 'test' } }
+    it 'sends a response for "giphy search /rating:pg test"', (done) ->
+      testInput done, @fakes, 'giphy search /rating:pg test', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { rating: 'pg', q: 'test' } }
 
-    it 'sends a response for "giphy search /limit:123 test"', ->
-      testInput @fakes, 'giphy search /limit:123 test', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { limit: '123', q: 'test' } }
+    it 'sends a response for "giphy search /limit:123 test"', (done) ->
+      testInput done, @fakes, 'giphy search /limit:123 test', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { limit: '123', q: 'test' } }
 
-    it 'sends a response for "giphy search /limit:123 /offset:25 test"', ->
-      testInput @fakes, 'giphy search /limit:123 /offset:25 test', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { limit: '123', offset: '25', q: 'test' } }
+    it 'sends a response for "giphy search /limit:123 /offset:25 test"', (done) ->
+      testInput done, @fakes, 'giphy search /limit:123 /offset:25 test', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { limit: '123', offset: '25', q: 'test' } }
