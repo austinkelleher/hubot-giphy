@@ -32,8 +32,9 @@ DEBUG = process.env.DEBUG
 
 # utility method for extending an object definition
 extend = (object, properties) ->
-  for key, val of properties
-    object[key] = val if val
+  object = object or { }
+  for key, val of properties or { }
+    object[key] = val if val or val == ''
   object
 
 # utility method for merging two objects
