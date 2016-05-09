@@ -245,7 +245,7 @@ module.exports = (robot) ->
 
   giphy = new Giphy api
 
-  robot.respond /^giphy\s*(.*?)\s*$/, (msg) ->
+  robot.respond /giphy\s*(.*?)\s*$/, (msg) ->
     giphy.respond msg
 
   # this allows testing to instrument the giphy instance
