@@ -108,6 +108,25 @@ describe 'giphy', ->
       @fakes.stub giphyPluginInstance.api, '_request', (options, callback) -> callback 'XHR Attempted', null
       @fakes.stub giphyPluginInstance, 'respond'
 
+    it 'api instance should default to http', ->
+      giphyPluginInstance = hubotGiphy robot
+      giphyPluginInstance.api.httpService.globalAgent.protocol.should.match /^http:$/
+
+    it 'api instance supports enabling https via HUBOT_GIPHY_HTTPS', ->
+      process.env.HUBOT_GIPHY_HTTPS = 'true'
+      giphyPluginInstance = hubotGiphy robot
+      giphyPluginInstance.api.httpService.globalAgent.protocol.should.match /^https:$/
+
+    it 'api instance supports overriding the timeout via HUBOT_GIPHY_TIMEOUT', ->
+      process.env.HUBOT_GIPHY_TIMEOUT = '123'
+      giphyPluginInstance = hubotGiphy robot
+      giphyPluginInstance.api.timeout.should.eql 123
+
+    it 'api instance supports setting the api key via HUBOT_GIPHY_API_KEY', ->
+      process.env.HUBOT_GIPHY_API_KEY = 'testing'
+      giphyPluginInstance = hubotGiphy robot
+      giphyPluginInstance.api.apiKey.should.eql 'testing'
+
     it 'has an active respond trigger', ->
       robot.respond.should.have.been.called.once
 
@@ -306,6 +325,13 @@ describe 'giphy', ->
         @giphy.getEndpoint state
         state.endpoint.should.eql 'test1'
         state.args.should.eql 'test2'
+
+      it 'handles only endpoint match', ->
+        state = { }
+        @fakes.stub @giphy, 'match', -> [ null, 'test1', '' ]
+        @giphy.getEndpoint state
+        state.endpoint.should.eql 'test1'
+        state.args.should.eql ''
 
       it 'handles only args match', ->
         state = { }
@@ -755,8 +781,18 @@ describe 'giphy', ->
         @fakes.stub @giphy, 'getUri'
         @fakes.stub @giphy, 'error'
 
-      it 'handles a valid msg', ->
+      it 'handles non-empty matched args', ->
         msg = { match: [ null, 'testing' ] }
+        state = 'state'
+        @fakes.stub @giphy, 'createState', -> state
+        @giphy.respond msg
+        @giphy.createState.should.have.been.calledWith msg
+        @giphy.getEndpoint.should.have.been.calledWith state
+        @giphy.getOptions.should.have.been.calledWith state
+        @giphy.getUri.should.have.been.calledWith state
+
+      it 'handles empty matched args', ->
+        msg = { match: [ null, '' ] }
         state = 'state'
         @fakes.stub @giphy, 'createState', -> state
         @giphy.respond msg
@@ -778,3 +814,98 @@ describe 'giphy', ->
         @giphy.respond { match: [ null ] }
         @giphy.getUri.should.not.have.been.called
         @giphy.error.should.have.callCount 4
+
+  describe 'plugin api integration', ->
+    giphyPluginInstance = null
+    regex = null
+    callback = null
+    msg = null
+
+    testInput = (fakes, input, result, options) ->
+      fakes.stub giphyPluginInstance.api, '_request', (options, callback) -> callback null, result
+      msg.match = regex.exec input
+      callback.call null, msg
+      if typeof options is 'function'
+        options.call null
+      else
+        giphyPluginInstance.api._request.should.have.been.called.once
+        requestOptions = giphyPluginInstance.api._request.getCalls()[0].args[0]
+        should.exist requestOptions
+        requestOptions.should.eql options
+        msg.send.should.have.been.called.once
+        msg.send.should.have.been.calledWith sampleUri
+
+    beforeEach ->
+      robot = { respond: @fakes.spy() }
+      giphyPluginInstance = hubotGiphy robot
+      responder = robot.respond.getCalls()[0]
+      regex = responder.args[0]
+      callback = responder.args[1]
+      msg = { send: @fakes.spy() }
+
+    it 'sends a response for "giphy search"', ->
+      testInput @fakes, 'giphy search', sampleResult, { api: 'gifs', endpoint: 'random', query: { } }
+
+    it 'sends a response for "giphy search test"', ->
+      testInput @fakes, 'giphy search test', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { q: 'test' } }
+
+    it 'sends a response for "giphy search test1 test2"', ->
+      testInput @fakes, 'giphy search test1 test2', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { q: 'test1 test2' } }
+
+    it 'sends a response for "giphy id"', ->
+      testInput @fakes, 'giphy id', sampleCollectionResult, ->
+        msg.send.should.have.been.calledWith 'No Id Provided'
+
+    it 'sends a response for "giphy id test"', ->
+      testInput @fakes, 'giphy id test', sampleCollectionResult, { api: 'gifs', query: { ids: 'test' } }
+
+    it 'sends a response for "giphy id test1 test2"', ->
+      testInput @fakes, 'giphy id test1 test2', sampleCollectionResult, { api: 'gifs', query: { ids: 'test1,test2' } }
+
+    it 'sends a response for "giphy translate"', ->
+      testInput @fakes, 'giphy translate', sampleResult, { api: 'gifs', endpoint: 'translate', query: { } }
+
+    it 'sends a response for "giphy translate test"', ->
+      testInput @fakes, 'giphy translate test', sampleResult, { api: 'gifs', endpoint: 'translate', query: { s: 'test' } }
+
+    it 'sends a response for "giphy translate test1 test2"', ->
+      testInput @fakes, 'giphy translate test1 test2', sampleResult, { api: 'gifs', endpoint: 'translate', query: { s: 'test1 test2' } }
+
+    it 'sends a response for "giphy random"', ->
+      testInput @fakes, 'giphy random', sampleResult, { api: 'gifs', endpoint: 'random', query: { } }
+
+    it 'sends a response for "giphy random test"', ->
+      testInput @fakes, 'giphy random test', sampleResult, { api: 'gifs', endpoint: 'random', query: { tag: 'test' } }
+
+    it 'sends a response for "giphy random test1 test2"', ->
+      testInput @fakes, 'giphy random test1 test2', sampleResult, { api: 'gifs', endpoint: 'random', query: { tag: 'test1 test2' } }
+
+    it 'sends a response for "giphy trending"', ->
+      testInput @fakes, 'giphy trending', sampleCollectionResult, { api: 'gifs', endpoint: 'trending' }
+
+    it 'sends a response for "giphy trending test"', ->
+      testInput @fakes, 'giphy trending test', sampleCollectionResult, { api: 'gifs', endpoint: 'trending' }
+
+    it 'sends a response for "giphy trending test1 test2"', ->
+      testInput @fakes, 'giphy trending test1 test2', sampleCollectionResult, { api: 'gifs', endpoint: 'trending' }
+
+    it 'sends a response for "giphy"', ->
+      testInput @fakes, 'giphy', sampleResult, { api: 'gifs', endpoint: 'random', query: { } }
+
+    it 'sends a response for "giphy test"', ->
+      testInput @fakes, 'giphy test', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { q: 'test' } }
+
+    it 'sends a response for "giphy test1 test2"', ->
+      testInput @fakes, 'giphy test1 test2', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { q: 'test1 test2' } }
+
+    it 'sends a response for "giphy search /api:stickers test"', ->
+      testInput @fakes, 'giphy search /api:stickers test', sampleCollectionResult, { api: 'stickers', endpoint: 'search', query: { api: 'stickers', q: 'test' } }
+
+    it 'sends a response for "giphy search /rating:pg test"', ->
+      testInput @fakes, 'giphy search /rating:pg test', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { rating: 'pg', q: 'test' } }
+
+    it 'sends a response for "giphy search /limit:123 test"', ->
+      testInput @fakes, 'giphy search /limit:123 test', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { limit: '123', q: 'test' } }
+
+    it 'sends a response for "giphy search /limit:123 /offset:25 test"', ->
+      testInput @fakes, 'giphy search /limit:123 /offset:25 test', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { limit: '123', offset: '25', q: 'test' } }
