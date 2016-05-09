@@ -79,12 +79,52 @@ describe 'giphy', ->
       should.exist giphyPluginInstance
       should.exist giphyPluginInstance.api
 
+    it 'should be able to access the extend utility', ->
+      should.exist extend
+
+    it 'should be able to access the merge utility', ->
+      should.exist merge
+
     it 'can simulate environment variable values', ->
       process.env.TESTING = 'testing'
       process.env.TESTING.should.eql 'testing'
 
     it 'does not persist environment variable changes', ->
       should.not.exist process.env.TESTING
+
+  describe 'extend utility', ->
+    it 'creates an empty object for null input', ->
+      result = extend()
+      should.exist result
+      result.should.eql { }
+
+    it 'adds properties to an empty object', ->
+      result = extend null, { a: 1 }
+      should.exist result
+      result.should.eql { a: 1 }
+
+    it 'adds properties to a non-empty object', ->
+      result = extend { b: 2 }, { a: 1 }
+      should.exist result
+      result.should.eql { a: 1, b: 2 }
+
+    it 'overwrites properties on a non-empty object', ->
+      result = extend { a: 2 }, { a: 1 }
+      should.exist result
+      result.should.eql { a: 1 }
+
+    it 'retains empty string properties', ->
+      result = extend { }, { a: '' }
+      should.exist result
+      result.should.eql { a: '' }
+
+    it 'ignores null properties', ->
+      result = extend { a: 1 }, { b: null }
+      should.exist result
+      result.should.eql { a: 1 }
+
+  describe 'merge utility', ->
+    it 'has no tests yet'
 
   describe 'hubot script', ->
     giphyPluginInstance = null
@@ -578,6 +618,13 @@ describe 'giphy', ->
         @giphy.getUriFromResultData.should.have.been.calledWith sampleData
 
     describe '.getRandomUri', ->
+      it 'gets a result without args', ->
+        state = { }
+        @fakes.stub @giphy.api, 'random'
+        @giphy.getRandomUri state
+        @giphy.api.random.should.have.been.called.once
+        @giphy.api.random.should.have.been.calledWith { }, sinon.match.func
+
       it 'gets a result using args', ->
         state = { args: 'testing' }
         @fakes.stub @giphy.api, 'random'
