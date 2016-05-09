@@ -771,11 +771,10 @@ describe 'giphy', ->
         @giphy.getUri.should.not.have.been.called
         @giphy.error.should.have.been.called.twice
 
-      it 'handles null giphy command args', ->
+      it 'handles missing giphy command args', ->
         @giphy.respond { }
         @giphy.respond { match: null }
         @giphy.respond { match: [] }
         @giphy.respond { match: [ null ] }
-        @giphy.respond { match: [ null, null ] }
         @giphy.getUri.should.not.have.been.called
-        @giphy.error.should.have.callCount 5
+        @giphy.error.should.have.callCount 4
