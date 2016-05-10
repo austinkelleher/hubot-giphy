@@ -31,6 +31,10 @@ sampleResult = {
   data: sampleData
 }
 
+sampleRandomResult = {
+  data: sampleRandomData
+}
+
 sampleCollectionResult = {
   data: [
     sampleData,
@@ -665,14 +669,14 @@ describe 'giphy', ->
 
       it 'handles the response callback', ->
         state = { msg: 'msg', args: 'testing' }
-        @fakes.stub @giphy.api, 'random', (options, callback) -> callback 'error', sampleResult
+        @fakes.stub @giphy.api, 'random', (options, callback) -> callback 'error', sampleRandomResult
         @fakes.stub @giphy, 'handleResponse', (state, err, uriCreator) -> uriCreator()
-        @fakes.stub @giphy, 'getUriFromResultData'
+        @fakes.stub @giphy, 'getUriFromRandomResultData'
         @giphy.getRandomUri state
         @giphy.handleResponse.should.have.been.called.once
         @giphy.handleResponse.should.have.been.calledWith state, 'error', sinon.match.func
-        @giphy.getUriFromResultData.should.have.been.called.once
-        @giphy.getUriFromResultData.should.have.been.calledWith sampleData
+        @giphy.getUriFromRandomResultData.should.have.been.called.once
+        @giphy.getUriFromRandomResultData.should.have.been.calledWith sampleRandomData
 
     describe '.getTrendingUri', ->
       it 'gets a result without options', ->

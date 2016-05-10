@@ -182,7 +182,7 @@ Example:
       rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
     }, state.options
     @api.random options, (err, res) =>
-      @handleResponse state, err, => @getUriFromResultData res.data
+      @handleResponse state, err, => @getUriFromRandomResultData res.data
 
   getTrendingUri: (state) ->
     @log 'getTrendingUri:', state
