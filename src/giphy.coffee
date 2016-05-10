@@ -137,6 +137,10 @@ Example:
     if data and data.images and data.images.original
       data.images.original.url
 
+  getUriFromRandomResultData: (data) ->
+    if data
+      data.url
+
   getSearchUri: (state) ->
     @log 'getSearchUri:', state
     if state.args and state.args.length > 0
@@ -178,7 +182,7 @@ Example:
       rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
     }, state.options
     @api.random options, (err, res) =>
-      @handleResponse state, err, => @getUriFromResultData res.data
+      @handleResponse state, err, => @getUriFromRandomResultData res.data
 
   getTrendingUri: (state) ->
     @log 'getTrendingUri:', state

@@ -23,8 +23,16 @@ sampleData = {
   }
 }
 
+sampleRandomData = {
+  url: sampleUri
+}
+
 sampleResult = {
   data: sampleData
+}
+
+sampleRandomResult = {
+  data: sampleRandomData
 }
 
 sampleCollectionResult = {
@@ -475,7 +483,7 @@ describe 'giphy', ->
         callback.should.not.have.been.called
 
     describe '.getUriFromResultData', ->
-      it 'returns .data.images.original.url', ->
+      it 'returns .images.original.url', ->
         uri = @giphy.getUriFromResultData sampleData
         should.exist uri
         uri.should.eql sampleData.images.original.url
@@ -488,6 +496,18 @@ describe 'giphy', ->
         uri = @giphy.getUriFromResultData { images: { } }
         should.not.exist uri
         uri = @giphy.getUriFromResultData { images: { original: { } } }
+        should.not.exist uri
+
+    describe '.getUriFromRandomResultData', ->
+      it 'returns .url', ->
+        uri = @giphy.getUriFromRandomResultData sampleRandomData
+        should.exist uri
+        uri.should.eql sampleRandomData.url
+
+      it 'does not return a uri for invalid input', ->
+        uri = @giphy.getUriFromRandomResultData null
+        should.not.exist uri
+        uri = @giphy.getUriFromRandomResultData { }
         should.not.exist uri
 
     describe '.getSearchUri', ->
@@ -649,14 +669,14 @@ describe 'giphy', ->
 
       it 'handles the response callback', ->
         state = { msg: 'msg', args: 'testing' }
-        @fakes.stub @giphy.api, 'random', (options, callback) -> callback 'error', sampleResult
+        @fakes.stub @giphy.api, 'random', (options, callback) -> callback 'error', sampleRandomResult
         @fakes.stub @giphy, 'handleResponse', (state, err, uriCreator) -> uriCreator()
-        @fakes.stub @giphy, 'getUriFromResultData'
+        @fakes.stub @giphy, 'getUriFromRandomResultData'
         @giphy.getRandomUri state
         @giphy.handleResponse.should.have.been.called.once
         @giphy.handleResponse.should.have.been.calledWith state, 'error', sinon.match.func
-        @giphy.getUriFromResultData.should.have.been.called.once
-        @giphy.getUriFromResultData.should.have.been.calledWith sampleData
+        @giphy.getUriFromRandomResultData.should.have.been.called.once
+        @giphy.getUriFromRandomResultData.should.have.been.calledWith sampleRandomData
 
     describe '.getTrendingUri', ->
       it 'gets a result without options', ->
@@ -910,7 +930,7 @@ describe 'giphy', ->
       [ regex, callback ] = robot.respond.lastCall.args
 
     it 'sends a response for "giphy search"', (done) ->
-      testInput done, @fakes, 'giphy search', sampleResult, { api: 'gifs', endpoint: 'random', query: { } }
+      testInput done, @fakes, 'giphy search', sampleRandomResult, { api: 'gifs', endpoint: 'random', query: { } }
 
     it 'sends a response for "giphy search test"', (done) ->
       testInput done, @fakes, 'giphy search test', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { q: 'test' } }
@@ -938,13 +958,13 @@ describe 'giphy', ->
       testInput done, @fakes, 'giphy translate test1 test2', sampleResult, { api: 'gifs', endpoint: 'translate', query: { s: 'test1 test2' } }
 
     it 'sends a response for "giphy random"', (done) ->
-      testInput done, @fakes, 'giphy random', sampleResult, { api: 'gifs', endpoint: 'random', query: { } }
+      testInput done, @fakes, 'giphy random', sampleRandomResult, { api: 'gifs', endpoint: 'random', query: { } }
 
     it 'sends a response for "giphy random test"', (done) ->
-      testInput done, @fakes, 'giphy random test', sampleResult, { api: 'gifs', endpoint: 'random', query: { tag: 'test' } }
+      testInput done, @fakes, 'giphy random test', sampleRandomResult, { api: 'gifs', endpoint: 'random', query: { tag: 'test' } }
 
     it 'sends a response for "giphy random test1 test2"', (done) ->
-      testInput done, @fakes, 'giphy random test1 test2', sampleResult, { api: 'gifs', endpoint: 'random', query: { tag: 'test1 test2' } }
+      testInput done, @fakes, 'giphy random test1 test2', sampleRandomResult, { api: 'gifs', endpoint: 'random', query: { tag: 'test1 test2' } }
 
     it 'sends a response for "giphy trending"', (done) ->
       testInput done, @fakes, 'giphy trending', sampleCollectionResult, { api: 'gifs', endpoint: 'trending' }
@@ -956,7 +976,7 @@ describe 'giphy', ->
       testInput done, @fakes, 'giphy trending test1 test2', sampleCollectionResult, { api: 'gifs', endpoint: 'trending' }
 
     it 'sends a response for "giphy"', (done) ->
-      testInput done, @fakes, 'giphy', sampleResult, { api: 'gifs', endpoint: 'random', query: { } }
+      testInput done, @fakes, 'giphy', sampleRandomResult, { api: 'gifs', endpoint: 'random', query: { } }
 
     it 'sends a response for "giphy test"', (done) ->
       testInput done, @fakes, 'giphy test', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { q: 'test' } }
