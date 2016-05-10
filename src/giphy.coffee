@@ -137,6 +137,10 @@ Example:
     if data and data.images and data.images.original
       data.images.original.url
 
+  getUriFromRandomResultData: (data) ->
+    if data
+      data.url
+
   getSearchUri: (state) ->
     @log 'getSearchUri:', state
     if state.args and state.args.length > 0

@@ -23,6 +23,10 @@ sampleData = {
   }
 }
 
+sampleRandomData = {
+  url: sampleUri
+}
+
 sampleResult = {
   data: sampleData
 }
@@ -488,6 +492,18 @@ describe 'giphy', ->
         uri = @giphy.getUriFromResultData { images: { } }
         should.not.exist uri
         uri = @giphy.getUriFromResultData { images: { original: { } } }
+        should.not.exist uri
+
+    describe '.getUriFromRandomResultData', ->
+      it 'returns .url', ->
+        uri = @giphy.getUriFromRandomResultData sampleRandomData
+        should.exist uri
+        uri.should.eql sampleRandomData.url
+
+      it 'does not return a uri for invalid input', ->
+        uri = @giphy.getUriFromRandomResultData null
+        should.not.exist uri
+        uri = @giphy.getUriFromRandomResultData { }
         should.not.exist uri
 
     describe '.getSearchUri', ->
