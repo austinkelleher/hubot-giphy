@@ -930,7 +930,7 @@ describe 'giphy', ->
       [ regex, callback ] = robot.respond.lastCall.args
 
     it 'sends a response for "giphy search"', (done) ->
-      testInput done, @fakes, 'giphy search', sampleResult, { api: 'gifs', endpoint: 'random', query: { } }
+      testInput done, @fakes, 'giphy search', sampleRandomResult, { api: 'gifs', endpoint: 'random', query: { } }
 
     it 'sends a response for "giphy search test"', (done) ->
       testInput done, @fakes, 'giphy search test', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { q: 'test' } }
@@ -958,13 +958,13 @@ describe 'giphy', ->
       testInput done, @fakes, 'giphy translate test1 test2', sampleResult, { api: 'gifs', endpoint: 'translate', query: { s: 'test1 test2' } }
 
     it 'sends a response for "giphy random"', (done) ->
-      testInput done, @fakes, 'giphy random', sampleResult, { api: 'gifs', endpoint: 'random', query: { } }
+      testInput done, @fakes, 'giphy random', sampleRandomResult, { api: 'gifs', endpoint: 'random', query: { } }
 
     it 'sends a response for "giphy random test"', (done) ->
-      testInput done, @fakes, 'giphy random test', sampleResult, { api: 'gifs', endpoint: 'random', query: { tag: 'test' } }
+      testInput done, @fakes, 'giphy random test', sampleRandomResult, { api: 'gifs', endpoint: 'random', query: { tag: 'test' } }
 
     it 'sends a response for "giphy random test1 test2"', (done) ->
-      testInput done, @fakes, 'giphy random test1 test2', sampleResult, { api: 'gifs', endpoint: 'random', query: { tag: 'test1 test2' } }
+      testInput done, @fakes, 'giphy random test1 test2', sampleRandomResult, { api: 'gifs', endpoint: 'random', query: { tag: 'test1 test2' } }
 
     it 'sends a response for "giphy trending"', (done) ->
       testInput done, @fakes, 'giphy trending', sampleCollectionResult, { api: 'gifs', endpoint: 'trending' }
@@ -976,7 +976,7 @@ describe 'giphy', ->
       testInput done, @fakes, 'giphy trending test1 test2', sampleCollectionResult, { api: 'gifs', endpoint: 'trending' }
 
     it 'sends a response for "giphy"', (done) ->
-      testInput done, @fakes, 'giphy', sampleResult, { api: 'gifs', endpoint: 'random', query: { } }
+      testInput done, @fakes, 'giphy', sampleRandomResult, { api: 'gifs', endpoint: 'random', query: { } }
 
     it 'sends a response for "giphy test"', (done) ->
       testInput done, @fakes, 'giphy test', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { q: 'test' } }
