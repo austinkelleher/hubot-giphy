@@ -483,7 +483,7 @@ describe 'giphy', ->
         callback.should.not.have.been.called
 
     describe '.getUriFromResultData', ->
-      it 'returns .data.images.original.url', ->
+      it 'returns .images.original.url', ->
         uri = @giphy.getUriFromResultData sampleData
         should.exist uri
         uri.should.eql sampleData.images.original.url
