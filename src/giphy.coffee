@@ -79,7 +79,7 @@ Example:
 """.trim()
 
   ### istanbul ignore next ###
-  log: () ->
+  log: ->
     if DEBUG
       [ msg, state, args... ] = arguments
       state = extend({}, state)
