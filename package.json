@@ -48,6 +48,6 @@
   },
   "main": "index.coffee",
   "scripts": {
-    "test": "gulp test:npm"
+    "test": "gulp npm:test"
   }
 }

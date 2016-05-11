@@ -58,7 +58,7 @@ gulp.task('default', [ 'test' ]);
 gulp.task('test', [ 'mocha' ]);
 
 // npm test task
-gulp.task('test:npm', (done) => {
+gulp.task('npm:test', (done) => {
   runSequence('clean', 'lint', 'mocha:coverage', () => {
     // only upload coveralls data if running in a CI environment
     if (process.env.CI) {
