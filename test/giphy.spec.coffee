@@ -212,10 +212,20 @@ describe 'giphy', ->
         should.exist giphyInstance.defaultEndpoint
         giphyInstance.defaultEndpoint.should.eql Giphy.SearchEndpointName
 
+      it 'assigns a default limit', ->
+        giphyInstance = new Giphy 'api'
+        should.exist giphyInstance.defaultLimit
+        giphyInstance.defaultEndpoint.should.have.length.greaterThan.zero
+
       it 'allows default endpoint override via HUBOT_GIPHY_DEFAULT_ENDPOINT', ->
         process.env.HUBOT_GIPHY_DEFAULT_ENDPOINT = 'testing'
         giphyInstance = new Giphy 'api'
         giphyInstance.defaultEndpoint.should.eql 'testing'
+
+      it 'allows default limit override via HUBOT_GIPHY_DEFAULT_LIMIT', ->
+        process.env.HUBOT_GIPHY_DEFAULT_LIMIT = '123'
+        giphyInstance = new Giphy 'api'
+        giphyInstance.defaultLimit.should.eql '123'
 
       it 'throws an error if no api is provided', ->
         should.throw -> new Giphy()
@@ -530,7 +540,7 @@ describe 'giphy', ->
         @fakes.stub @giphy.api, 'search'
         @giphy.getSearchUri state
         @giphy.api.search.should.have.been.called.once
-        @giphy.api.search.should.have.been.calledWith { q: 'testing' }, sinon.match.func
+        @giphy.api.search.should.have.been.calledWith { limit: '5', q: 'testing' }, sinon.match.func
 
       it 'gets a result using args and options', ->
         state = { args: 'testing', options: { limit: '10' } }
@@ -539,9 +549,9 @@ describe 'giphy', ->
         @giphy.api.search.should.have.been.called.once
         @giphy.api.search.should.have.been.calledWith { q: 'testing', limit: '10' }, sinon.match.func
 
-      it 'uses HUBOT_GIPHY_DEFAULT_LIMIT for the default limit', ->
+      it 'uses @defaultLimit for the default limit', ->
         state = { args: 'testing' }
-        process.env.HUBOT_GIPHY_DEFAULT_LIMIT = '123'
+        @giphy.defaultLimit = '123'
         @fakes.stub @giphy.api, 'search'
         @giphy.getSearchUri state
         @giphy.api.search.should.have.been.called.once
@@ -553,7 +563,7 @@ describe 'giphy', ->
         @fakes.stub @giphy.api, 'search'
         @giphy.getSearchUri state
         @giphy.api.search.should.have.been.called.once
-        @giphy.api.search.should.have.been.calledWith { q: 'testing', rating: 'test' }, sinon.match.func
+        @giphy.api.search.should.have.been.calledWith { limit: '5', q: 'testing', rating: 'test' }, sinon.match.func
 
       it 'handles the response callback', ->
         state = { msg: 'msg', args: 'testing' }
@@ -698,7 +708,7 @@ describe 'giphy', ->
         @fakes.stub @giphy.api, 'trending'
         @giphy.getTrendingUri state
         @giphy.api.trending.should.have.been.called.once
-        @giphy.api.trending.should.have.been.calledWith { }, sinon.match.func
+        @giphy.api.trending.should.have.been.calledWith { limit: '5' }, sinon.match.func
 
       it 'gets a result using options', ->
         state = { options: { limit: '123', rating: 'test' } }
@@ -707,9 +717,9 @@ describe 'giphy', ->
         @giphy.api.trending.should.have.been.called.once
         @giphy.api.trending.should.have.been.calledWith { limit: '123', rating: 'test' }, sinon.match.func
 
-      it 'uses HUBOT_GIPHY_DEFAULT_LIMIT for the default limit', ->
+      it 'uses @defaultLimit for the default limit', ->
         state = { }
-        process.env.HUBOT_GIPHY_DEFAULT_LIMIT = '123'
+        @giphy.defaultLimit = '123'
         @fakes.stub @giphy.api, 'trending'
         @giphy.getTrendingUri state
         @giphy.api.trending.should.have.been.called.once
@@ -721,7 +731,7 @@ describe 'giphy', ->
         @fakes.stub @giphy.api, 'trending'
         @giphy.getTrendingUri state
         @giphy.api.trending.should.have.been.called.once
-        @giphy.api.trending.should.have.been.calledWith { rating: 'test' }, sinon.match.func
+        @giphy.api.trending.should.have.been.calledWith { limit: '5', rating: 'test' }, sinon.match.func
 
       it 'handles the response callback', ->
         state = { msg: 'msg' }

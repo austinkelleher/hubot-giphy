@@ -5,7 +5,7 @@
 #   HUBOT_GIPHY_API_KEY
 #   HUBOT_GIPHY_HTTPS
 #   HUBOT_GIPHY_TIMEOUT
-#   HUBOT_GIPHY_DEFAULT_LIMIT
+#   HUBOT_GIPHY_DEFAULT_LIMIT     default: 5
 #   HUBOT_GIPHY_DEFAULT_RATING
 #   HUBOT_GIPHY_INLINE_IMAGES
 #   HUBOT_GIPHY_DEFAULT_ENDPOINT  default: search
@@ -63,6 +63,7 @@ class Giphy
     throw new Error 'Giphy API is required' if not api
 
     @api = api
+    @defaultLimit = process.env.HUBOT_GIPHY_DEFAULT_LIMIT or '5'
     @defaultEndpoint = process.env.HUBOT_GIPHY_DEFAULT_ENDPOINT or Giphy.SearchEndpointName
     @helpText = """
 giphy [endpoint] [options...] [args]
@@ -149,7 +150,7 @@ Example:
     if state.args and state.args.length > 0
       options = merge {
         q: state.args,
-        limit: process.env.HUBOT_GIPHY_DEFAULT_LIMIT
+        limit: @defaultLimit
         rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
       }, state.options
       @api.search options, (err, res) =>
@@ -190,7 +191,7 @@ Example:
   getTrendingUri: (state) ->
     @log 'getTrendingUri:', state
     options = merge {
-      limit: process.env.HUBOT_GIPHY_DEFAULT_LIMIT
+      limit: @defaultLimit
       rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
     }, state.options
     @api.trending options, (err, res) =>
