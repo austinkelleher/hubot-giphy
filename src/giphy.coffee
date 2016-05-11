@@ -116,7 +116,7 @@ Example:
 
   getNextOption: (state) ->
     @log 'getNextOption:', state
-    regex = /\/(\w+):(\w+)/
+    regex = /\/(\w+):(\w*)/
     optionFound = false
     state.args = state.args.replace regex, (match, key, val) ->
       state.options[key] = val

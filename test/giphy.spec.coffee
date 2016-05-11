@@ -403,6 +403,13 @@ describe 'giphy', ->
         state.args.should.eql ''
         state.options.should.eql { test1: 'test1' }
 
+      it 'handles a single empty switch value', ->
+        state = { args: '/test1:', options: { } }
+        optionFound = @giphy.getNextOption state
+        optionFound.should.be.true
+        state.args.should.eql ''
+        state.options.should.eql { test1: '' }
+
       it 'handles multiple switches', ->
         state = { args: '/test1:test1 /test2:test2', options: { } }
         optionFound = @giphy.getNextOption state
@@ -430,6 +437,13 @@ describe 'giphy', ->
         optionFound.should.be.true
         state.args.should.eql 'test 2 /test3:test3'
         state.options.should.eql { test1: 'test1' }
+
+      it 'handles empty value switches before args', ->
+        state = { args: '/test1: test2', options: { } }
+        optionFound = @giphy.getNextOption state
+        optionFound.should.be.true
+        state.args.should.eql 'test2'
+        state.options.should.eql { test1: '' }
 
     describe '.getOptions', ->
       it 'handles false result from getNextOption', ->
