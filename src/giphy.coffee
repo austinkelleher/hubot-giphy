@@ -5,7 +5,7 @@
 #   HUBOT_GIPHY_API_KEY
 #   HUBOT_GIPHY_HTTPS
 #   HUBOT_GIPHY_TIMEOUT
-#   HUBOT_GIPHY_DEFAULT_LIMIT
+#   HUBOT_GIPHY_DEFAULT_LIMIT     default: 5
 #   HUBOT_GIPHY_DEFAULT_RATING
 #   HUBOT_GIPHY_INLINE_IMAGES
 #   HUBOT_GIPHY_DEFAULT_ENDPOINT  default: search
@@ -63,6 +63,7 @@ class Giphy
     throw new Error 'Giphy API is required' if not api
 
     @api = api
+    @defaultLimit = process.env.HUBOT_GIPHY_DEFAULT_LIMIT or '5'
     @defaultEndpoint = process.env.HUBOT_GIPHY_DEFAULT_ENDPOINT or Giphy.SearchEndpointName
     @helpText = """
 giphy [endpoint] [options...] [args]
@@ -78,10 +79,13 @@ Example:
 """.trim()
 
   ### istanbul ignore next ###
-  log: (msg, state) ->
-    state = extend({}, state)
-    delete state.msg
-    console.log.call this, msg, state if DEBUG
+  log: ->
+    if DEBUG
+      [ msg, state, args... ] = arguments
+      state = extend({}, state)
+      delete state.msg
+      args.unshift state
+      console.log.call this, msg, args
 
   error: (msg, reason) ->
     if msg and reason
@@ -113,7 +117,7 @@ Example:
 
   getNextOption: (state) ->
     @log 'getNextOption:', state
-    regex = /\/(\w+):(\w+)/
+    regex = /\/(\w+):(\w*)/
     optionFound = false
     state.args = state.args.replace regex, (match, key, val) ->
       state.options[key] = val
@@ -146,7 +150,7 @@ Example:
     if state.args and state.args.length > 0
       options = merge {
         q: state.args,
-        limit: process.env.HUBOT_GIPHY_DEFAULT_LIMIT
+        limit: @defaultLimit
         rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
       }, state.options
       @api.search options, (err, res) =>
@@ -187,7 +191,7 @@ Example:
   getTrendingUri: (state) ->
     @log 'getTrendingUri:', state
     options = merge {
-      limit: process.env.HUBOT_GIPHY_DEFAULT_LIMIT
+      limit: @defaultLimit
       rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
     }, state.options
     @api.trending options, (err, res) =>
