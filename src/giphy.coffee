@@ -148,9 +148,10 @@ Example:
 
   getUriFromResultDataWithMaxSize: (images, size = 0, allowLargerThanMaxSize = false) ->
     if images and size > 0
-      imagesBySize = Object.keys images
-        .map (x) -> images[x]
-        .sort (a, b) -> a.size - b.size
+      imagesBySize = Object
+        .keys(images)
+        .map((x) -> images[x])
+        .sort((a, b) -> a.size - b.size)
 
       # for whatever reason istanbul is complaining about this missing else block
       ### istanbul ignore else ###
