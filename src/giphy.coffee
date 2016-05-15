@@ -68,7 +68,7 @@ class Giphy
     @defaultLimit = process.env.HUBOT_GIPHY_DEFAULT_LIMIT or '5'
     @defaultEndpoint = process.env.HUBOT_GIPHY_DEFAULT_ENDPOINT or Giphy.SearchEndpointName
     @helpText = """
-giphy [endpoint] [options...] [args]
+#{@robot.name} giphy [endpoint] [options...] [args]
 
 endpoints: search, id, translate, random, trending
 options: rating, limit, offset, api
@@ -77,7 +77,7 @@ default endpoint is '#{@defaultEndpoint}' if none is specified
 options can be specified using /option:value
 
 Example:
-  giphy search /limit:100 /offset:50 /rating:pg something to search for
+  #{@robot.name} giphy search /limit:100 /offset:50 /rating:pg something to search for
 """.trim()
 
   ### istanbul ignore next ###
