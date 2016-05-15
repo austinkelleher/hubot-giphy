@@ -224,15 +224,32 @@ describe 'giphy', ->
         should.exist giphyInstance.defaultLimit
         giphyInstance.defaultEndpoint.should.have.length.greaterThan.zero
 
-      it 'allows default endpoint override via HUBOT_GIPHY_DEFAULT_ENDPOINT', ->
-        process.env.HUBOT_GIPHY_DEFAULT_ENDPOINT = 'testing'
+      it 'assigns a disabled max size of 0 as a default', ->
         giphyInstance = new Giphy 'robot', 'api'
-        giphyInstance.defaultEndpoint.should.eql 'testing'
+        should.exist giphyInstance.maxSize
+        giphyInstance.maxSize.should.eql 0
 
       it 'allows default limit override via HUBOT_GIPHY_DEFAULT_LIMIT', ->
         process.env.HUBOT_GIPHY_DEFAULT_LIMIT = '123'
         giphyInstance = new Giphy 'robot', 'api'
         giphyInstance.defaultLimit.should.eql '123'
+
+      it 'allows default endpoint override via HUBOT_GIPHY_DEFAULT_ENDPOINT', ->
+        process.env.HUBOT_GIPHY_DEFAULT_ENDPOINT = 'testing'
+        giphyInstance = new Giphy 'robot', 'api'
+        giphyInstance.defaultEndpoint.should.eql 'testing'
+
+      it 'allows strict max image size configuration via HUBOT_GIPHY_MAX_SIZE', ->
+        process.env.HUBOT_GIPHY_MAX_SIZE = '123'
+        giphyInstance = new Giphy 'robot', 'api'
+        giphyInstance.maxSize.should.eql 123
+        giphyInstance.allowLargerThanMaxSize.should.eql false
+
+      it 'allows loose max image size configuration via HUBOT_GIPHY_MAX_SIZE', ->
+        process.env.HUBOT_GIPHY_MAX_SIZE = '~123'
+        giphyInstance = new Giphy 'robot', 'api'
+        giphyInstance.maxSize.should.eql 123
+        giphyInstance.allowLargerThanMaxSize.should.eql true
 
       it 'throws an error if no robot is provided', ->
         should.throw -> new Giphy()
