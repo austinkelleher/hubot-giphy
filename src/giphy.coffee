@@ -142,7 +142,7 @@ Example:
     while @getNextOption state
       null
 
-  getRandomResultData: (data, callback) ->
+  getRandomResultFromCollectionData: (data, callback) ->
     if data and callback and data.length > 0
       callback(if data.length == 1 then data[0] else data[Math.floor(Math.random() * data.length)])
 
@@ -163,7 +163,7 @@ Example:
         rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
       }, state.options
       @api.search options, (err, res) =>
-        @handleResponse state, err, => @getRandomResultData(res.data, @getUriFromResultData)
+        @handleResponse state, err, => @getRandomResultFromCollectionData(res.data, @getUriFromResultData)
     else
       @getRandomUri state
 
@@ -175,7 +175,7 @@ Example:
         .filter((x) -> x.length > 0)
         .map((x) -> x.trim())
       @api.id ids, (err, res) =>
-        @handleResponse state, err, => @getRandomResultData(res.data, @getUriFromResultData)
+        @handleResponse state, err, => @getRandomResultFromCollectionData(res.data, @getUriFromResultData)
     else
       @error state.msg, 'No Id Provided'
 
@@ -204,7 +204,7 @@ Example:
       rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
     }, state.options
     @api.trending options, (err, res) =>
-      @handleResponse state, err, => @getRandomResultData(res.data, @getUriFromResultData)
+      @handleResponse state, err, => @getRandomResultFromCollectionData(res.data, @getUriFromResultData)
 
   getHelp: (state) ->
     @log 'getHelp:', state

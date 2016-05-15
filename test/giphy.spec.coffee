@@ -510,10 +510,10 @@ describe 'giphy', ->
         should.exist state.options
         state.options.should.eql { test1: '1', test3: 'test3' }
 
-    describe '.getRandomResultData', ->
+    describe '.getRandomResultFromCollectionData', ->
       it 'calls the callback with a single value collection', ->
         callback = @fakes.stub().returns 'result'
-        result = @giphy.getRandomResultData [ 'testing' ], callback
+        result = @giphy.getRandomResultFromCollectionData [ 'testing' ], callback
         callback.should.have.been.called.once
         callback.should.have.been.calledWith 'testing'
         should.exist result
@@ -521,7 +521,7 @@ describe 'giphy', ->
 
       it 'calls the callback with a multiple value collection', ->
         callback = @fakes.stub().returns 'result'
-        result = @giphy.getRandomResultData [ 'testing1', 'testing2' ], callback
+        result = @giphy.getRandomResultFromCollectionData [ 'testing1', 'testing2' ], callback
         callback.should.have.been.called.once
         callback.should.have.been.calledWith sinon.match('testing1').or sinon.match('testing2')
         should.exist result
@@ -529,9 +529,9 @@ describe 'giphy', ->
 
       it 'handles null or empty data', ->
         callback = sinon.spy()
-        @giphy.getRandomResultData undefined, callback
-        @giphy.getRandomResultData null, callback
-        @giphy.getRandomResultData [], callback
+        @giphy.getRandomResultFromCollectionData undefined, callback
+        @giphy.getRandomResultFromCollectionData null, callback
+        @giphy.getRandomResultFromCollectionData [], callback
         callback.should.not.have.been.called
 
     describe '.getUriFromResultData', ->
@@ -597,12 +597,12 @@ describe 'giphy', ->
         state = { msg: 'msg', args: 'testing' }
         @fakes.stub @giphy.api, 'search', (options, callback) -> callback 'error', sampleCollectionResult
         @fakes.stub @giphy, 'handleResponse', (state, err, uriCreator) -> uriCreator()
-        @fakes.stub @giphy, 'getRandomResultData'
+        @fakes.stub @giphy, 'getRandomResultFromCollectionData'
         @giphy.getSearchUri state
         @giphy.handleResponse.should.have.been.called.once
         @giphy.handleResponse.should.have.been.calledWith state, 'error', sinon.match.func
-        @giphy.getRandomResultData.should.have.been.called.once
-        @giphy.getRandomResultData.should.have.been.calledWith sampleCollectionResult.data, @giphy.getUriFromResultData
+        @giphy.getRandomResultFromCollectionData.should.have.been.called.once
+        @giphy.getRandomResultFromCollectionData.should.have.been.calledWith sampleCollectionResult.data, @giphy.getUriFromResultData
 
       it 'calls getRandomUri for empty args', ->
         @fakes.stub @giphy, 'getRandomUri'
@@ -637,12 +637,12 @@ describe 'giphy', ->
         state = { msg: 'msg', args: 'testing' }
         @fakes.stub @giphy.api, 'id', (ids, callback) -> callback 'error', sampleCollectionResult
         @fakes.stub @giphy, 'handleResponse', (state, err, uriCreator) -> uriCreator()
-        @fakes.stub @giphy, 'getRandomResultData'
+        @fakes.stub @giphy, 'getRandomResultFromCollectionData'
         @giphy.getIdUri state
         @giphy.handleResponse.should.have.been.called.once
         @giphy.handleResponse.should.have.been.calledWith state, 'error', sinon.match.func
-        @giphy.getRandomResultData.should.have.been.called.once
-        @giphy.getRandomResultData.should.have.been.calledWith sampleCollectionResult.data, @giphy.getUriFromResultData
+        @giphy.getRandomResultFromCollectionData.should.have.been.called.once
+        @giphy.getRandomResultFromCollectionData.should.have.been.calledWith sampleCollectionResult.data, @giphy.getUriFromResultData
 
       it 'sends and error when no args are provided', ->
         state = { }
@@ -765,12 +765,12 @@ describe 'giphy', ->
         state = { msg: 'msg' }
         @fakes.stub @giphy.api, 'trending', (options, callback) -> callback 'error', sampleCollectionResult
         @fakes.stub @giphy, 'handleResponse', (state, err, uriCreator) -> uriCreator()
-        @fakes.stub @giphy, 'getRandomResultData'
+        @fakes.stub @giphy, 'getRandomResultFromCollectionData'
         @giphy.getTrendingUri state
         @giphy.handleResponse.should.have.been.called.once
         @giphy.handleResponse.should.have.been.calledWith state, 'error', sinon.match.func
-        @giphy.getRandomResultData.should.have.been.called.once
-        @giphy.getRandomResultData.should.have.been.calledWith sampleCollectionResult.data, @giphy.getUriFromResultData
+        @giphy.getRandomResultFromCollectionData.should.have.been.called.once
+        @giphy.getRandomResultFromCollectionData.should.have.been.calledWith sampleCollectionResult.data, @giphy.getUriFromResultData
 
     describe '.getHelp', ->
       it 'send a response with help text', ->
