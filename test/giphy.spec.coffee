@@ -1030,3 +1030,8 @@ describe 'giphy', ->
 
     it 'sends a response for "giphy search /limit:123 /offset:25 test"', (done) ->
       testInput done, @fakes, 'giphy search /limit:123 /offset:25 test', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { limit: '123', offset: '25', q: 'test' } }
+
+    it 'sends help text for "giphy help"', (done) ->
+      testInput done, @fakes, 'giphy help', null, ->
+        msg.send.should.have.been.called
+        console.log msg.send.lastCall.args[0]
