@@ -959,7 +959,7 @@ describe 'giphy', ->
         msg.send.should.have.callCount 0
 
     beforeEach ->
-      robot = { respond: @fakes.spy() }
+      robot = { name: 'robot', respond: @fakes.spy() }
       msg = { send: @fakes.spy() }
       giphyPluginInstance = hubotGiphy robot
       [ regex, callback ] = robot.respond.lastCall.args
