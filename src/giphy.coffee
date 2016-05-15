@@ -168,7 +168,7 @@ Example:
         if image and image.url
           image.url
 
-  getUriFromResultData: (data) ->
+  getUriFromResultData: (data) =>
     if data and data.images
       if @maxSize > 0
         @getUriFromResultDataWithMaxSize data.images, @maxSize, @allowLargerThanMaxSize
