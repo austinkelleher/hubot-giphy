@@ -974,7 +974,7 @@ describe 'giphy', ->
       testInput done, @fakes, 'giphy search test1 test2', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { q: 'test1 test2' } }
 
     it 'sends a response for "giphy id"', (done) ->
-      testInput done, @fakes, 'giphy id', sampleCollectionResult, ->
+      testInput done, @fakes, 'giphy id', null, ->
         msg.send.should.have.been.calledWith 'No Id Provided'
 
     it 'sends a response for "giphy id test"', (done) ->
