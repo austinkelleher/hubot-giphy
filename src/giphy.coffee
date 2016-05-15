@@ -149,6 +149,7 @@ Example:
   getUriFromResultDataWithMaxSize: (images, size = 0, allowLargerThanMaxSize = false) ->
     if images and images.length and size > 0
       imagesBySize = Object.keys images
+        .map (x) -> images[x]
         .sort (a, b) -> a.size - b.size
 
       allowedImages = imagesBySize
