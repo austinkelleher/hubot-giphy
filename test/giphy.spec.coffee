@@ -251,6 +251,11 @@ describe 'giphy', ->
         giphyInstance.maxSize.should.eql 123
         giphyInstance.allowLargerThanMaxSize.should.eql true
 
+      it 'ignores invalid configuration via HUBOT_GIPHY_MAX_SIZE', ->
+        process.env.HUBOT_GIPHY_MAX_SIZE = 'asdf'
+        giphyInstance = new Giphy 'robot', 'api'
+        giphyInstance.maxSize.should.eql 0
+
       it 'throws an error if no robot is provided', ->
         should.throw -> new Giphy()
         should.throw -> new Giphy null, 'api'
