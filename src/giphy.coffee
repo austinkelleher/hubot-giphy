@@ -96,7 +96,7 @@ Example:
       args.unshift state
       console.log.call this, msg, args
 
-  error: (msg, reason) ->
+  error: (msg, reason) =>
     if msg and reason
       @sendMessage msg, reason
 
@@ -114,7 +114,7 @@ Example:
   match: (input) ->
     Giphy.regex.exec input or ''
 
-  getEndpoint: (state) ->
+  getEndpoint: (state) =>
     @log 'getEndpoint:', state
     match = @match state.input
 
@@ -124,7 +124,7 @@ Example:
     else
       state.endpoint = state.args = ''
 
-  getNextOption: (state) ->
+  getNextOption: (state) =>
     @log 'getNextOption:', state
     regex = /\/(\w+):(\w*)/
     optionFound = false
@@ -136,7 +136,7 @@ Example:
     optionFound
 
   # rating, limit, offset, api
-  getOptions: (state) ->
+  getOptions: (state) =>
     @log 'getOptions:', state
     state.options = {}
     while @getNextOption state
@@ -179,7 +179,7 @@ Example:
     if data
       data.url
 
-  getSearchUri: (state) ->
+  getSearchUri: (state) =>
     @log 'getSearchUri:', state
     if state.args and state.args.length > 0
       options = merge {
@@ -192,7 +192,7 @@ Example:
     else
       @getRandomUri state
 
-  getIdUri: (state) ->
+  getIdUri: (state) =>
     @log 'getIdUri:', state
     if state.args and state.args.length > 0
       ids = state.args
@@ -204,7 +204,7 @@ Example:
     else
       @error state.msg, 'No Id Provided'
 
-  getTranslateUri: (state) ->
+  getTranslateUri: (state) =>
     @log 'getTranslateUri:', state
     options = merge {
       s: state.args,
@@ -213,7 +213,7 @@ Example:
     @api.translate options, (err, res) =>
       @handleResponse state, err, => @getUriFromResultData res.data
 
-  getRandomUri: (state) ->
+  getRandomUri: (state) =>
     @log 'getRandomUri:', state
     options = merge {
       tag: state.args,
@@ -222,7 +222,7 @@ Example:
     @api.random options, (err, res) =>
       @handleResponse state, err, => @getUriFromRandomResultData res.data
 
-  getTrendingUri: (state) ->
+  getTrendingUri: (state) =>
     @log 'getTrendingUri:', state
     options = merge {
       limit: @defaultLimit
@@ -231,11 +231,11 @@ Example:
     @api.trending options, (err, res) =>
       @handleResponse state, err, => @getRandomResultFromCollectionData(res.data, @getUriFromResultData)
 
-  getHelp: (state) ->
+  getHelp: (state) =>
     @log 'getHelp:', state
     @sendMessage state.msg, @helpText
 
-  getUri: (state) ->
+  getUri: (state) =>
     @log 'getUri:', state
     switch state.endpoint
       when Giphy.SearchEndpointName then @getSearchUri state
@@ -246,7 +246,7 @@ Example:
       when Giphy.HelpName then @getHelp state
       else @error state.msg, "Unrecognized Endpoint: #{state.endpoint}"
 
-  handleResponse: (state, err, uriCreator) ->
+  handleResponse: (state, err, uriCreator) =>
     @log 'handleResponse:', state
     if err
       @error state.msg, "giphy-api Error: #{err}"
@@ -254,7 +254,7 @@ Example:
       state.uri = uriCreator.call this
       @sendResponse state
 
-  sendResponse: (state) ->
+  sendResponse: (state) =>
     @log 'sendResponse:', state
     if state.uri
       message = if process.env.HUBOT_GIPHY_INLINE_IMAGES then "![giphy](#{state.uri})" else state.uri
@@ -266,7 +266,7 @@ Example:
     if msg and message
       msg.send message
 
-  respond: (msg) ->
+  respond: (msg) =>
     # we must check the match.length >= 2 here because just checking the value
     # match[2] could give us a false negative since empty string resolves to false
     if msg and msg.match and msg.match.length >= 2
