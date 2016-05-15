@@ -550,6 +550,14 @@ describe 'giphy', ->
         uri = @giphy.getUriFromResultData { images: { original: { } } }
         should.not.exist uri
 
+      it 'calls getUriFromResultDataWithMaxSize if maxSize > 0', ->
+        sinon.stub @giphy, 'getUriFromResultDataWithMaxSize'
+        @giphy.maxSize = 123
+        @giphy.allowLargerThanMaxSize = true
+        @giphy.getUriFromResultData sampleData
+        @giphy.getUriFromResultDataWithMaxSize.should.have.been.called.once
+        @giphy.getUriFromResultDataWithMaxSize.should.have.been.calledWith sampleData.images, 123, true
+
     describe '.getUriFromRandomResultData', ->
       it 'returns .url', ->
         uri = @giphy.getUriFromRandomResultData sampleRandomData
