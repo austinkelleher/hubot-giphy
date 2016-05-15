@@ -75,6 +75,7 @@ options: rating, limit, offset, api
 
 default endpoint is '#{@defaultEndpoint}' if none is specified
 options can be specified using /option:value
+rating can be one of y,g, pg, pg-13, or r
 
 Example:
   #{@robot.name} giphy search /limit:100 /offset:50 /rating:pg something to search for
