@@ -71,7 +71,7 @@ class Giphy
 
     match = /(~?)(\d+)/.exec (process.env.HUBOT_GIPHY_MAX_SIZE or '0')
     @maxSize = if match then Number match[2] else 0
-    @allowLargerThanMaxSize = match[1] == '~'
+    @allowLargerThanMaxSize = (match and match[1] == '~')
 
     @helpText = """
 #{@robot.name} giphy [endpoint] [options...] [args]
