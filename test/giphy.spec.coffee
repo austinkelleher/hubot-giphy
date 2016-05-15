@@ -535,11 +535,56 @@ describe 'giphy', ->
         callback.should.not.have.been.called
 
     describe '.getUriFromResultDataWithMaxSize', ->
-      it 'ignores calls with invalid or empty images'
-      it 'ignores calls with size <= 0'
-      it 'returns the largest allowed image in strict mode'
-      it 'returns the smallest image when all images are too large in loose mode'
-      it 'returns nothing when all images are too large in strict mode'
+      it 'ignores calls with invalid or empty images', ->
+        result = @giphy.getUriFromResultDataWithMaxSize()
+        should.not.exist result
+        result = @giphy.getUriFromResultDataWithMaxSize null
+        should.not.exist result
+        result = @giphy.getUriFromResultDataWithMaxSize { }
+        should.not.exist result
+
+      it 'ignores calls without size or with size <= 0', ->
+        result = @giphy.getUriFromResultDataWithMaxSize { img: null }
+        should.not.exist result
+        result = @giphy.getUriFromResultDataWithMaxSize { img: null }, 0
+        should.not.exist result
+        result = @giphy.getUriFromResultDataWithMaxSize { img: null }, -1
+        should.not.exist result
+
+      it 'returns the largest allowed image in strict mode', ->
+        images = {
+          medium: { size: '500' },
+          small: { size: '100' },
+          large: { size: '1000' },
+        }
+        result = @giphy.getUriFromResultDataWithMaxSize images, 123, false
+        should.exist result
+        result.should.eql images.small
+        result = @giphy.getUriFromResultDataWithMaxSize images, 500, false
+        should.exist result
+        result.should.eql images.medium
+        result = @giphy.getUriFromResultDataWithMaxSize images, 999, false
+        should.exist result
+        result.should.eql images.medium
+
+      it 'returns the smallest image when all images are too large in loose mode', ->
+        images = {
+          medium: { size: '500' },
+          small: { size: '100' },
+          large: { size: '1000' },
+        }
+        result = @giphy.getUriFromResultDataWithMaxSize images, 1, true
+        should.exist result
+        result.should.eql images.small
+
+      it 'returns nothing when all images are too large in strict mode', ->
+        images = {
+          medium: { size: '500' },
+          small: { size: '100' },
+          large: { size: '1000' },
+        }
+        result = @giphy.getUriFromResultDataWithMaxSize images, 1, false
+        should.not.exist result
 
     describe '.getUriFromResultData', ->
       it 'returns .images.original.url', ->
