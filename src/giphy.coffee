@@ -68,6 +68,11 @@ class Giphy
     @api = api
     @defaultLimit = process.env.HUBOT_GIPHY_DEFAULT_LIMIT or '5'
     @defaultEndpoint = process.env.HUBOT_GIPHY_DEFAULT_ENDPOINT or Giphy.SearchEndpointName
+
+    match = /(~?)(\d+)/.exec (process.env.HUBOT_GIPHY_MAX_SIZE or '0')
+    @maxSize = if match then Number match[2] else 0
+    @allowLargerThanMaxSize = match[1] == '~'
+
     @helpText = """
 #{@robot.name} giphy [endpoint] [options...] [args]
 
