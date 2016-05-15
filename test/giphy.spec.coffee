@@ -53,10 +53,12 @@ describe 'giphy', ->
     # clone the original environment so we can inject variables
     process.env = extend { }, @env
 
+    # create a fake robot
+    robot = { name: 'robot' }
     # create a new test giphy api
     @api = giphyApi()
     # create a new test giphy instance
-    @giphy = new Giphy @api
+    @giphy = new Giphy robot, @api
 
     # protect against any real XHR attempts
     @fakes.stub @api, '_request', (options, callback) -> callback 'XHR Attempted', null
@@ -202,33 +204,42 @@ describe 'giphy', ->
 
   describe 'class', ->
     describe '.constructor', ->
+      it 'assigns the provided robot', ->
+        giphyInstance = new Giphy 'robot', 'api'
+        should.exist giphyInstance.robot
+        giphyInstance.robot.should.eql 'robot'
+
       it 'assigns the provided api', ->
-        giphyInstance = new Giphy 'api'
+        giphyInstance = new Giphy 'robot', 'api'
         should.exist giphyInstance.api
         giphyInstance.api.should.eql 'api'
 
       it 'assigns a default endpoint', ->
-        giphyInstance = new Giphy 'api'
+        giphyInstance = new Giphy 'robot', 'api'
         should.exist giphyInstance.defaultEndpoint
         giphyInstance.defaultEndpoint.should.eql Giphy.SearchEndpointName
 
       it 'assigns a default limit', ->
-        giphyInstance = new Giphy 'api'
+        giphyInstance = new Giphy 'robot', 'api'
         should.exist giphyInstance.defaultLimit
         giphyInstance.defaultEndpoint.should.have.length.greaterThan.zero
 
       it 'allows default endpoint override via HUBOT_GIPHY_DEFAULT_ENDPOINT', ->
         process.env.HUBOT_GIPHY_DEFAULT_ENDPOINT = 'testing'
-        giphyInstance = new Giphy 'api'
+        giphyInstance = new Giphy 'robot', 'api'
         giphyInstance.defaultEndpoint.should.eql 'testing'
 
       it 'allows default limit override via HUBOT_GIPHY_DEFAULT_LIMIT', ->
         process.env.HUBOT_GIPHY_DEFAULT_LIMIT = '123'
-        giphyInstance = new Giphy 'api'
+        giphyInstance = new Giphy 'robot', 'api'
         giphyInstance.defaultLimit.should.eql '123'
 
-      it 'throws an error if no api is provided', ->
+      it 'throws an error if no robot is provided', ->
         should.throw -> new Giphy()
+        should.throw -> new Giphy null, 'api'
+
+      it 'throws an error if no api is provided', ->
+        should.throw -> new Giphy 'robot'
 
     describe '.error', ->
       beforeEach ->
@@ -948,7 +959,7 @@ describe 'giphy', ->
         msg.send.should.have.callCount 0
 
     beforeEach ->
-      robot = { respond: @fakes.spy() }
+      robot = { name: 'robot', respond: @fakes.spy() }
       msg = { send: @fakes.spy() }
       giphyPluginInstance = hubotGiphy robot
       [ regex, callback ] = robot.respond.lastCall.args
@@ -963,7 +974,7 @@ describe 'giphy', ->
       testInput done, @fakes, 'giphy search test1 test2', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { q: 'test1 test2' } }
 
     it 'sends a response for "giphy id"', (done) ->
-      testInput done, @fakes, 'giphy id', sampleCollectionResult, ->
+      testInput done, @fakes, 'giphy id', null, ->
         msg.send.should.have.been.calledWith 'No Id Provided'
 
     it 'sends a response for "giphy id test"', (done) ->
@@ -1019,3 +1030,8 @@ describe 'giphy', ->
 
     it 'sends a response for "giphy search /limit:123 /offset:25 test"', (done) ->
       testInput done, @fakes, 'giphy search /limit:123 /offset:25 test', sampleCollectionResult, { api: 'gifs', endpoint: 'search', query: { limit: '123', offset: '25', q: 'test' } }
+
+    it 'sends help text for "giphy help"', (done) ->
+      testInput done, @fakes, 'giphy help', null, ->
+        msg.send.should.have.been.called
+        console.log msg.send.lastCall.args[0]
