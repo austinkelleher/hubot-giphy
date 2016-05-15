@@ -60,6 +60,7 @@ class Giphy
   @regex = new RegExp "^\\s*(#{Giphy.endpoints.join('|')}|#{Giphy.HelpName})?\\s*(.*?)$", 'i'
 
   constructor: (robot, api) ->
+    throw new Error 'Robot is required' if not robot
     throw new Error 'Giphy API is required' if not api
 
     @robot = robot
