@@ -155,13 +155,17 @@ Example:
       # for whatever reason istanbul is complaining about this missing else block
       ### istanbul ignore else ###
       if imagesBySize.length > 0
+        image = null
         allowedImages = imagesBySize
           .filter (x) -> x.size <= size
 
         if allowedImages and allowedImages.length > 0
-          allowedImages[allowedImages.length - 1]
+          image = allowedImages[allowedImages.length - 1]
         else if allowLargerThanMaxSize
-          imagesBySize[0]
+          image = imagesBySize[0]
+
+        if image and image.url
+          image.url
 
   getUriFromResultData: (data) ->
     if data and data.images
