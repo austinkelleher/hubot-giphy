@@ -534,6 +534,13 @@ describe 'giphy', ->
         @giphy.getRandomResultFromCollectionData [], callback
         callback.should.not.have.been.called
 
+    describe '.getUriFromResultDataWithMaxSize', ->
+      it 'ignores calls with invalid or empty images'
+      it 'ignores calls with size <= 0'
+      it 'returns the largest allowed image in strict mode'
+      it 'returns the smallest image when all images are too large in loose mode'
+      it 'returns nothing when all images are too large in strict mode'
+
     describe '.getUriFromResultData', ->
       it 'returns .images.original.url', ->
         uri = @giphy.getUriFromResultData sampleData
