@@ -8,6 +8,7 @@
 #   HUBOT_GIPHY_DEFAULT_LIMIT     default: 5
 #   HUBOT_GIPHY_DEFAULT_RATING
 #   HUBOT_GIPHY_INLINE_IMAGES
+#   HUBOT_GIPHY_MAX_SIZE
 #   HUBOT_GIPHY_DEFAULT_ENDPOINT  default: search
 #
 # Commands:
@@ -67,6 +68,11 @@ class Giphy
     @api = api
     @defaultLimit = process.env.HUBOT_GIPHY_DEFAULT_LIMIT or '5'
     @defaultEndpoint = process.env.HUBOT_GIPHY_DEFAULT_ENDPOINT or Giphy.SearchEndpointName
+
+    match = /(~?)(\d+)/.exec (process.env.HUBOT_GIPHY_MAX_SIZE or '0')
+    @maxSize = if match then Number match[2] else 0
+    @allowLargerThanMaxSize = (match and match[1] == '~')
+
     @helpText = """
 #{@robot.name} giphy [endpoint] [options...] [args]
 
@@ -136,13 +142,33 @@ Example:
     while @getNextOption state
       null
 
-  getRandomResultData: (data, callback) ->
+  getRandomResultFromCollectionData: (data, callback) ->
     if data and callback and data.length > 0
       callback(if data.length == 1 then data[0] else data[Math.floor(Math.random() * data.length)])
 
+  getUriFromResultDataWithMaxSize: (images, size = 0, allowLargerThanMaxSize = false) ->
+    if images and size > 0
+      imagesBySize = Object.keys images
+        .map (x) -> images[x]
+        .sort (a, b) -> a.size - b.size
+
+      # for whatever reason istanbul is complaining about this missing else block
+      ### istanbul ignore else ###
+      if imagesBySize.length > 0
+        allowedImages = imagesBySize
+          .filter (x) -> x.size <= size
+
+        if allowedImages and allowedImages.length > 0
+          allowedImages[allowedImages.length - 1]
+        else if allowLargerThanMaxSize
+          imagesBySize[0]
+
   getUriFromResultData: (data) ->
-    if data and data.images and data.images.original
-      data.images.original.url
+    if data and data.images
+      if @maxSize > 0
+        @getUriFromResultDataWithMaxSize data.images, @maxSize, @allowLargerThanMaxSize
+      else if data.images.original
+        data.images.original.url
 
   getUriFromRandomResultData: (data) ->
     if data
@@ -157,7 +183,7 @@ Example:
         rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
       }, state.options
       @api.search options, (err, res) =>
-        @handleResponse state, err, => @getRandomResultData(res.data, @getUriFromResultData)
+        @handleResponse state, err, => @getRandomResultFromCollectionData(res.data, @getUriFromResultData)
     else
       @getRandomUri state
 
@@ -169,7 +195,7 @@ Example:
         .filter((x) -> x.length > 0)
         .map((x) -> x.trim())
       @api.id ids, (err, res) =>
-        @handleResponse state, err, => @getRandomResultData(res.data, @getUriFromResultData)
+        @handleResponse state, err, => @getRandomResultFromCollectionData(res.data, @getUriFromResultData)
     else
       @error state.msg, 'No Id Provided'
 
@@ -198,7 +224,7 @@ Example:
       rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
     }, state.options
     @api.trending options, (err, res) =>
-      @handleResponse state, err, => @getRandomResultData(res.data, @getUriFromResultData)
+      @handleResponse state, err, => @getRandomResultFromCollectionData(res.data, @getUriFromResultData)
 
   getHelp: (state) ->
     @log 'getHelp:', state

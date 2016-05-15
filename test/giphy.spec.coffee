@@ -224,15 +224,37 @@ describe 'giphy', ->
         should.exist giphyInstance.defaultLimit
         giphyInstance.defaultEndpoint.should.have.length.greaterThan.zero
 
-      it 'allows default endpoint override via HUBOT_GIPHY_DEFAULT_ENDPOINT', ->
-        process.env.HUBOT_GIPHY_DEFAULT_ENDPOINT = 'testing'
+      it 'assigns a disabled max size of 0 as a default', ->
         giphyInstance = new Giphy 'robot', 'api'
-        giphyInstance.defaultEndpoint.should.eql 'testing'
+        should.exist giphyInstance.maxSize
+        giphyInstance.maxSize.should.eql 0
 
       it 'allows default limit override via HUBOT_GIPHY_DEFAULT_LIMIT', ->
         process.env.HUBOT_GIPHY_DEFAULT_LIMIT = '123'
         giphyInstance = new Giphy 'robot', 'api'
         giphyInstance.defaultLimit.should.eql '123'
+
+      it 'allows default endpoint override via HUBOT_GIPHY_DEFAULT_ENDPOINT', ->
+        process.env.HUBOT_GIPHY_DEFAULT_ENDPOINT = 'testing'
+        giphyInstance = new Giphy 'robot', 'api'
+        giphyInstance.defaultEndpoint.should.eql 'testing'
+
+      it 'allows strict max image size configuration via HUBOT_GIPHY_MAX_SIZE', ->
+        process.env.HUBOT_GIPHY_MAX_SIZE = '123'
+        giphyInstance = new Giphy 'robot', 'api'
+        giphyInstance.maxSize.should.eql 123
+        giphyInstance.allowLargerThanMaxSize.should.eql false
+
+      it 'allows loose max image size configuration via HUBOT_GIPHY_MAX_SIZE', ->
+        process.env.HUBOT_GIPHY_MAX_SIZE = '~123'
+        giphyInstance = new Giphy 'robot', 'api'
+        giphyInstance.maxSize.should.eql 123
+        giphyInstance.allowLargerThanMaxSize.should.eql true
+
+      it 'ignores invalid configuration via HUBOT_GIPHY_MAX_SIZE', ->
+        process.env.HUBOT_GIPHY_MAX_SIZE = 'asdf'
+        giphyInstance = new Giphy 'robot', 'api'
+        giphyInstance.maxSize.should.eql 0
 
       it 'throws an error if no robot is provided', ->
         should.throw -> new Giphy()
@@ -493,10 +515,10 @@ describe 'giphy', ->
         should.exist state.options
         state.options.should.eql { test1: '1', test3: 'test3' }
 
-    describe '.getRandomResultData', ->
+    describe '.getRandomResultFromCollectionData', ->
       it 'calls the callback with a single value collection', ->
         callback = @fakes.stub().returns 'result'
-        result = @giphy.getRandomResultData [ 'testing' ], callback
+        result = @giphy.getRandomResultFromCollectionData [ 'testing' ], callback
         callback.should.have.been.called.once
         callback.should.have.been.calledWith 'testing'
         should.exist result
@@ -504,7 +526,7 @@ describe 'giphy', ->
 
       it 'calls the callback with a multiple value collection', ->
         callback = @fakes.stub().returns 'result'
-        result = @giphy.getRandomResultData [ 'testing1', 'testing2' ], callback
+        result = @giphy.getRandomResultFromCollectionData [ 'testing1', 'testing2' ], callback
         callback.should.have.been.called.once
         callback.should.have.been.calledWith sinon.match('testing1').or sinon.match('testing2')
         should.exist result
@@ -512,10 +534,62 @@ describe 'giphy', ->
 
       it 'handles null or empty data', ->
         callback = sinon.spy()
-        @giphy.getRandomResultData undefined, callback
-        @giphy.getRandomResultData null, callback
-        @giphy.getRandomResultData [], callback
+        @giphy.getRandomResultFromCollectionData undefined, callback
+        @giphy.getRandomResultFromCollectionData null, callback
+        @giphy.getRandomResultFromCollectionData [], callback
         callback.should.not.have.been.called
+
+    describe '.getUriFromResultDataWithMaxSize', ->
+      it 'ignores calls with invalid or empty images', ->
+        result = @giphy.getUriFromResultDataWithMaxSize()
+        should.not.exist result
+        result = @giphy.getUriFromResultDataWithMaxSize null
+        should.not.exist result
+        result = @giphy.getUriFromResultDataWithMaxSize { }
+        should.not.exist result
+
+      it 'ignores calls without size or with size <= 0', ->
+        result = @giphy.getUriFromResultDataWithMaxSize { img: null }
+        should.not.exist result
+        result = @giphy.getUriFromResultDataWithMaxSize { img: null }, 0
+        should.not.exist result
+        result = @giphy.getUriFromResultDataWithMaxSize { img: null }, -1
+        should.not.exist result
+
+      it 'returns the largest allowed image in strict mode', ->
+        images = {
+          medium: { size: '500' },
+          small: { size: '100' },
+          large: { size: '1000' },
+        }
+        result = @giphy.getUriFromResultDataWithMaxSize images, 123, false
+        should.exist result
+        result.should.eql images.small
+        result = @giphy.getUriFromResultDataWithMaxSize images, 500, false
+        should.exist result
+        result.should.eql images.medium
+        result = @giphy.getUriFromResultDataWithMaxSize images, 999, false
+        should.exist result
+        result.should.eql images.medium
+
+      it 'returns the smallest image when all images are too large in loose mode', ->
+        images = {
+          medium: { size: '500' },
+          small: { size: '100' },
+          large: { size: '1000' },
+        }
+        result = @giphy.getUriFromResultDataWithMaxSize images, 1, true
+        should.exist result
+        result.should.eql images.small
+
+      it 'returns nothing when all images are too large in strict mode', ->
+        images = {
+          medium: { size: '500' },
+          small: { size: '100' },
+          large: { size: '1000' },
+        }
+        result = @giphy.getUriFromResultDataWithMaxSize images, 1, false
+        should.not.exist result
 
     describe '.getUriFromResultData', ->
       it 'returns .images.original.url', ->
@@ -532,6 +606,14 @@ describe 'giphy', ->
         should.not.exist uri
         uri = @giphy.getUriFromResultData { images: { original: { } } }
         should.not.exist uri
+
+      it 'calls getUriFromResultDataWithMaxSize if maxSize > 0', ->
+        sinon.stub @giphy, 'getUriFromResultDataWithMaxSize'
+        @giphy.maxSize = 123
+        @giphy.allowLargerThanMaxSize = true
+        @giphy.getUriFromResultData sampleData
+        @giphy.getUriFromResultDataWithMaxSize.should.have.been.called.once
+        @giphy.getUriFromResultDataWithMaxSize.should.have.been.calledWith sampleData.images, 123, true
 
     describe '.getUriFromRandomResultData', ->
       it 'returns .url', ->
@@ -580,12 +662,12 @@ describe 'giphy', ->
         state = { msg: 'msg', args: 'testing' }
         @fakes.stub @giphy.api, 'search', (options, callback) -> callback 'error', sampleCollectionResult
         @fakes.stub @giphy, 'handleResponse', (state, err, uriCreator) -> uriCreator()
-        @fakes.stub @giphy, 'getRandomResultData'
+        @fakes.stub @giphy, 'getRandomResultFromCollectionData'
         @giphy.getSearchUri state
         @giphy.handleResponse.should.have.been.called.once
         @giphy.handleResponse.should.have.been.calledWith state, 'error', sinon.match.func
-        @giphy.getRandomResultData.should.have.been.called.once
-        @giphy.getRandomResultData.should.have.been.calledWith sampleCollectionResult.data, @giphy.getUriFromResultData
+        @giphy.getRandomResultFromCollectionData.should.have.been.called.once
+        @giphy.getRandomResultFromCollectionData.should.have.been.calledWith sampleCollectionResult.data, @giphy.getUriFromResultData
 
       it 'calls getRandomUri for empty args', ->
         @fakes.stub @giphy, 'getRandomUri'
@@ -620,12 +702,12 @@ describe 'giphy', ->
         state = { msg: 'msg', args: 'testing' }
         @fakes.stub @giphy.api, 'id', (ids, callback) -> callback 'error', sampleCollectionResult
         @fakes.stub @giphy, 'handleResponse', (state, err, uriCreator) -> uriCreator()
-        @fakes.stub @giphy, 'getRandomResultData'
+        @fakes.stub @giphy, 'getRandomResultFromCollectionData'
         @giphy.getIdUri state
         @giphy.handleResponse.should.have.been.called.once
         @giphy.handleResponse.should.have.been.calledWith state, 'error', sinon.match.func
-        @giphy.getRandomResultData.should.have.been.called.once
-        @giphy.getRandomResultData.should.have.been.calledWith sampleCollectionResult.data, @giphy.getUriFromResultData
+        @giphy.getRandomResultFromCollectionData.should.have.been.called.once
+        @giphy.getRandomResultFromCollectionData.should.have.been.calledWith sampleCollectionResult.data, @giphy.getUriFromResultData
 
       it 'sends and error when no args are provided', ->
         state = { }
@@ -748,12 +830,12 @@ describe 'giphy', ->
         state = { msg: 'msg' }
         @fakes.stub @giphy.api, 'trending', (options, callback) -> callback 'error', sampleCollectionResult
         @fakes.stub @giphy, 'handleResponse', (state, err, uriCreator) -> uriCreator()
-        @fakes.stub @giphy, 'getRandomResultData'
+        @fakes.stub @giphy, 'getRandomResultFromCollectionData'
         @giphy.getTrendingUri state
         @giphy.handleResponse.should.have.been.called.once
         @giphy.handleResponse.should.have.been.calledWith state, 'error', sinon.match.func
-        @giphy.getRandomResultData.should.have.been.called.once
-        @giphy.getRandomResultData.should.have.been.calledWith sampleCollectionResult.data, @giphy.getUriFromResultData
+        @giphy.getRandomResultFromCollectionData.should.have.been.called.once
+        @giphy.getRandomResultFromCollectionData.should.have.been.calledWith sampleCollectionResult.data, @giphy.getUriFromResultData
 
     describe '.getHelp', ->
       it 'send a response with help text', ->
