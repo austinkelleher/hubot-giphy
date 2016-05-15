@@ -147,18 +147,19 @@ Example:
       callback(if data.length == 1 then data[0] else data[Math.floor(Math.random() * data.length)])
 
   getUriFromResultDataWithMaxSize: (images, size = 0, allowLargerThanMaxSize = false) ->
-    if images and images.length and size > 0
+    if images and size > 0
       imagesBySize = Object.keys images
         .map (x) -> images[x]
         .sort (a, b) -> a.size - b.size
 
-      allowedImages = imagesBySize
-        .filter (x) -> x.size <= size
+      if imagesBySize.length > 0
+        allowedImages = imagesBySize
+          .filter (x) -> x.size <= size
 
-      if allowedImages and allowedImages.length > 0
-        allowedImages[allowedImages.length - 1]
-      else if allowLargerThanMaxSize
-        imagesBySize[0]
+        if allowedImages and allowedImages.length > 0
+          allowedImages[allowedImages.length - 1]
+        else if allowLargerThanMaxSize
+          imagesBySize[0]
 
   getUriFromResultData: (data) ->
     if data and data.images
