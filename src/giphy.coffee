@@ -59,9 +59,10 @@ class Giphy
 
   @regex = new RegExp "^\\s*(#{Giphy.endpoints.join('|')}|#{Giphy.HelpName})?\\s*(.*?)$", 'i'
 
-  constructor: (api) ->
+  constructor: (robot, api) ->
     throw new Error 'Giphy API is required' if not api
 
+    @robot = robot
     @api = api
     @defaultLimit = process.env.HUBOT_GIPHY_DEFAULT_LIMIT or '5'
     @defaultEndpoint = process.env.HUBOT_GIPHY_DEFAULT_ENDPOINT or Giphy.SearchEndpointName
@@ -252,7 +253,7 @@ module.exports = (robot) ->
     apiKey: process.env.HUBOT_GIPHY_API_KEY
   })
 
-  giphy = new Giphy api
+  giphy = new Giphy robot, api
 
   robot.respond /giphy\s*(.*?)\s*$/, (msg) ->
     giphy.respond msg
