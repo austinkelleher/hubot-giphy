@@ -558,29 +558,29 @@ describe 'giphy', ->
 
       it 'returns the largest allowed image in strict mode', ->
         images = {
-          medium: { size: '500' },
-          small: { size: '100' },
-          large: { size: '1000' },
+          medium: { size: '500', url: 'medium' },
+          small: { size: '100', url: 'small' },
+          large: { size: '1000', url: 'large' },
         }
         result = @giphy.getUriFromResultDataWithMaxSize images, 123, false
         should.exist result
-        result.should.eql images.small
+        result.should.eql images.small.url
         result = @giphy.getUriFromResultDataWithMaxSize images, 500, false
         should.exist result
-        result.should.eql images.medium
+        result.should.eql images.medium.url
         result = @giphy.getUriFromResultDataWithMaxSize images, 999, false
         should.exist result
-        result.should.eql images.medium
+        result.should.eql images.medium.url
 
       it 'returns the smallest image when all images are too large in loose mode', ->
         images = {
-          medium: { size: '500' },
-          small: { size: '100' },
-          large: { size: '1000' },
+          medium: { size: '500', url: 'medium' },
+          small: { size: '100', url: 'small' },
+          large: { size: '1000', url: 'large' },
         }
         result = @giphy.getUriFromResultDataWithMaxSize images, 1, true
         should.exist result
-        result.should.eql images.small
+        result.should.eql images.small.url
 
       it 'returns nothing when all images are too large in strict mode', ->
         images = {
