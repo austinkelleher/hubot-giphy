@@ -257,8 +257,11 @@ Example:
   sendResponse: (state, data) =>
     @log 'sendResponse:', state
     if state.uri
-      message = if process.env.HUBOT_GIPHY_INLINE_IMAGES then "![giphy](#{state.uri})" else state.uri
-      @sendMessage state.msg, message
+      if @robot.adapterName == 'slack'
+        title_link = if state.endpoint == SearchEndpointName then "http://giphy.com/search/#{state.args}" else data.url
+        @slackPostMessage state.msg, state.args, title_link, state.uri
+      else
+        @sendMessage state.msg, if process.env.HUBOT_GIPHY_INLINE_IMAGES then "![giphy](#{state.uri})" else state.uri
     else
       @error state.msg, 'No Results Found'
 
