@@ -266,6 +266,17 @@ Example:
     if msg and message
       msg.send message
 
+  slackPostMessage: (msg, title, title_link, image_url) =>
+    @robot.customMessage {
+      channel: msg.message.room,
+      attachments: {
+        fallback: image_url,
+        title,
+        title_link,
+        image_url
+      }
+    }
+
   respond: (msg) =>
     # we must check the match.length >= 2 here because just checking the value
     # match[2] could give us a false negative since empty string resolves to false
