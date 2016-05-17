@@ -188,7 +188,7 @@ Example:
         rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
       }, state.options
       @api.search options, (err, res) =>
-        @handleResponse state, err, => @getRandomResultFromCollectionData(res.data, @getUriFromResultData)
+        @handleResponse state, err, res.data, => @getRandomResultFromCollectionData(res.data, @getUriFromResultData)
     else
       @getRandomUri state
 
@@ -200,7 +200,7 @@ Example:
         .filter((x) -> x.length > 0)
         .map((x) -> x.trim())
       @api.id ids, (err, res) =>
-        @handleResponse state, err, => @getRandomResultFromCollectionData(res.data, @getUriFromResultData)
+        @handleResponse state, err, res.data, => @getRandomResultFromCollectionData(res.data, @getUriFromResultData)
     else
       @error state.msg, 'No Id Provided'
 
@@ -211,7 +211,7 @@ Example:
       rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
     }, state.options
     @api.translate options, (err, res) =>
-      @handleResponse state, err, => @getUriFromResultData res.data
+      @handleResponse state, err, res.data, => @getUriFromResultData res.data
 
   getRandomUri: (state) =>
     @log 'getRandomUri:', state
@@ -220,7 +220,7 @@ Example:
       rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
     }, state.options
     @api.random options, (err, res) =>
-      @handleResponse state, err, => @getUriFromRandomResultData res.data
+      @handleResponse state, err, res.data, => @getUriFromRandomResultData res.data
 
   getTrendingUri: (state) =>
     @log 'getTrendingUri:', state
@@ -229,7 +229,7 @@ Example:
       rating: process.env.HUBOT_GIPHY_DEFAULT_RATING
     }, state.options
     @api.trending options, (err, res) =>
-      @handleResponse state, err, => @getRandomResultFromCollectionData(res.data, @getUriFromResultData)
+      @handleResponse state, err, res.data, => @getRandomResultFromCollectionData(res.data, @getUriFromResultData)
 
   getHelp: (state) =>
     @log 'getHelp:', state
@@ -246,7 +246,7 @@ Example:
       when Giphy.HelpName then @getHelp state
       else @error state.msg, "Unrecognized Endpoint: #{state.endpoint}"
 
-  handleResponse: (state, err, uriCreator) =>
+  handleResponse: (state, err, data, uriCreator) =>
     @log 'handleResponse:', state
     if err
       @error state.msg, "giphy-api Error: #{err}"
