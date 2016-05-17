@@ -252,9 +252,9 @@ Example:
       @error state.msg, "giphy-api Error: #{err}"
     else
       state.uri = uriCreator.call this
-      @sendResponse state
+      @sendResponse state, data
 
-  sendResponse: (state) =>
+  sendResponse: (state, data) =>
     @log 'sendResponse:', state
     if state.uri
       message = if process.env.HUBOT_GIPHY_INLINE_IMAGES then "![giphy](#{state.uri})" else state.uri
