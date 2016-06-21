@@ -280,12 +280,11 @@ Example:
   slackPostMessage: (msg, title, title_link, image_url) =>
     @robot.customMessage {
       channel: msg.message.room,
-      attachments: {
+      attachments: [{
         fallback: image_url,
-        title,
-        title_link,
+        text: "<#{title_link}|#{title}> (#{@getHumanReadableLength(image_length)})",
         image_url
-      }
+      }]
     }
 
   respond: (msg) =>
