@@ -269,6 +269,14 @@ Example:
     if msg and message
       msg.send message
 
+  getHumanReadableLength: (length) =>
+    sfx = ['', 'K', 'M']
+    i = 0
+    while (length >= 1024 and i < sfx.length - 1)
+      length = length / 1024
+      i += 1
+    "#{Math.floor(length)}#{sfx[i]}B"
+
   slackPostMessage: (msg, title, title_link, image_url) =>
     @robot.customMessage {
       channel: msg.message.room,

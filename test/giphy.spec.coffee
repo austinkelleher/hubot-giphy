@@ -950,6 +950,25 @@ describe 'giphy', ->
         @giphy.sendMessage null, 'testing'
         msg.send.should.not.have.been.called
 
+    describe.only '.getHumanReadableLength', ->
+      it 'handles bytes', ->
+        result = @giphy.getHumanReadableLength 0
+        result.should.eql '0B'
+        result = @giphy.getHumanReadableLength 512
+        result.should.eql '512B'
+        result = @giphy.getHumanReadableLength 1023
+        result.should.eql '1023B'
+      it 'handles kilobytes', ->
+        result = @giphy.getHumanReadableLength 1024
+        result.should.eql '1KB'
+        result = @giphy.getHumanReadableLength 1048575
+        result.should.eql '1023KB'
+      it 'handles megabytes', ->
+        result = @giphy.getHumanReadableLength 1048576
+        result.should.eql '1MB'
+        result = @giphy.getHumanReadableLength 1073741824
+        result.should.eql '1024MB'
+
     describe '.respond', ->
       beforeEach ->
         @fakes.stub @giphy, 'getEndpoint'
