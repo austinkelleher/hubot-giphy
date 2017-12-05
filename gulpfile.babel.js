@@ -156,7 +156,6 @@ gulp.task('mocha:coverage', () => {
     ], { read: false })
     .pipe(mochaSpawn({
       recursive: true,
-      require: path.join(config.dirs.test, 'setup.js'),
       istanbul: true,
     }));
 });
