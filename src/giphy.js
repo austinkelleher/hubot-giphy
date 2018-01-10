@@ -119,8 +119,8 @@ ${ this.robot.name } giphy search /limit:100 /offset:50 /rating:pg something to 
 `.trim();
   }
 
-  /* istanbul ignore next */
   log(...args) {
+    /* istanbul ignore next */
     if (DEBUG) {
       const [ msg, state, ...argsCopy ] = args;
       const stateCopy = extend({}, state);
@@ -198,10 +198,10 @@ ${ this.robot.name } giphy search /limit:100 /offset:50 /rating:pg something to 
   }
 
   getUriFromResultDataWithMaxSize(images, size, allowLargerThanMaxSize) {
-    if (size === null) {
+    if (!size) {
       size = 0;
     }
-    if (allowLargerThanMaxSize === null) {
+    if (!allowLargerThanMaxSize) {
       allowLargerThanMaxSize = false;
     }
     if (images && (size > 0)) {

@@ -33,10 +33,11 @@
     "gulp-mocha": "^2.2.0",
     "gulp-open": "^2.0.0",
     "gulp-rimraf": "^0.2.0",
-    "gulp-spawn-mocha": "^2.2.2",
+    "gulp-spawn-mocha": "^4.0.1",
     "gulp-util": "^3.0.7",
+    "istanbul": "^0.4.5",
     "minimist": "^1.2.0",
-    "mocha": "^2.4.5",
+    "mocha": "^4.0.0",
     "run-sequence": "^1.1.5",
     "sinon": "^1.17.4",
     "sinon-chai": "^2.8.0"
