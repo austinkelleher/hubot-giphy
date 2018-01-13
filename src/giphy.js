@@ -391,7 +391,7 @@ module.exports = function (robot) {
 
   const giphy = new Giphy(robot, api);
 
-  robot.respond(/giphy\s*(.*?)\s*$/, (msg) => giphy.respond(msg));
+  robot.respond(/giphy\s*(.*?)\s*$/i, (msg) => giphy.respond(msg));
 
   // this allows testing to instrument the giphy instance
   /* istanbul ignore next */
