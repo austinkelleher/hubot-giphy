@@ -18,7 +18,7 @@ module.exports = function (robot, scripts) {
         const result = [];
 
         for (const script of Array.from(fs.readdirSync(scriptsPath))) { // eslint-disable-line no-sync
-          if ((scripts !== null) && !Array.from(scripts).includes('*')) {
+          if (scripts && !Array.from(scripts).includes('*')) {
             if (Array.from(scripts).includes(script)) {
               result.push(robot.loadFile(scriptsPath, script));
             }
