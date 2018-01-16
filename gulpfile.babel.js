@@ -10,7 +10,6 @@ require('dotenv').config({
 });
 
 import clean from 'gulp-rimraf';
-import coffeelint from 'gulp-coffeelint';
 import coveralls from 'gulp-coveralls';
 import eslint from 'gulp-eslint';
 import gulp from 'gulp';
@@ -21,9 +20,6 @@ import open from 'gulp-open';
 import path from 'path';
 import runSequence from 'run-sequence';
 import util from 'gulp-util';
-
-// this is required for mocha
-require('coffee-script/register');
 
 const args = minimist(process.argv);
 
@@ -91,8 +87,8 @@ Tasks:
   ${ util.colors.cyan('gulp clean') } will delete all files in ${ util.colors.magenta(config.dirs.coverage) }
        ${ [ 'coverage' ].map((x) => util.colors.cyan(`clean:${ x }`)).join(', ') }
 
-  ${ util.colors.cyan('gulp lint') } will lint the source files with ${ util.colors.yellow('eslint') } and ${ util.colors.yellow('coffeelint') }
-       ${ [ 'es', 'coffee' ].map((x) => util.colors.cyan(`lint:${ x }`)).join(', ') }
+  ${ util.colors.cyan('gulp lint') } will lint the source files with ${ util.colors.yellow('eslint') }
+       ${ [ 'es' ].map((x) => util.colors.cyan(`lint:${ x }`)).join(', ') }
 
   ${ util.colors.cyan('gulp mocha') } will run mocha against the specs in ${ util.colors.magenta(config.dirs.test) }
 
@@ -121,7 +117,7 @@ gulp.task('clean:coverage', () => {
 
 // lint Tasks
 
-gulp.task('lint', [ 'lint:es', 'lint:coffee' ]);
+gulp.task('lint', [ 'lint:es' ]);
 
 gulp.task('lint:es', () => {
   log('Linting with ESLint');
@@ -129,24 +125,12 @@ gulp.task('lint:es', () => {
   return gulp
     .src([
       path.join(__dirname, '*.js'),
+      path.join(__dirname, 'test', '*.js'),
+      path.join(__dirname, 'src', '*.js'),
     ])
     .pipe(eslint())
     .pipe(eslint.format())
     .pipe(eslint.failAfterError());
-});
-
-gulp.task('lint:coffee', () => {
-  log('Linting with CoffeeLint');
-
-  return gulp
-    .src([
-      path.join(config.dirs.src, '**', '*.coffee'),
-      path.join(config.dirs.test, '**', '*.coffee'),
-      path.join(__dirname, '*.coffee'),
-    ])
-    .pipe(coffeelint())
-    .pipe(coffeelint.reporter('coffeelint-stylish'))
-    .pipe(coffeelint.reporter('fail'));
 });
 
 // mocha Tasks
@@ -156,7 +140,7 @@ gulp.task('mocha', () => {
 
   return gulp
     .src([
-      path.join(config.dirs.test, '**', '*.spec.coffee'),
+      path.join(config.dirs.test, '**', '*.spec.js'),
     ])
     .pipe(mocha({
       reporter: args.reporter || (config.quiet ? 'dot' : config.test.reporter),
@@ -168,12 +152,10 @@ gulp.task('mocha:coverage', () => {
 
   return gulp
     .src([
-      path.join(config.dirs.test, '**', '*.spec.coffee'),
+      path.join(config.dirs.test, '**', '*.spec.js'),
     ], { read: false })
     .pipe(mochaSpawn({
       recursive: true,
-      compilers: 'coffee:coffee-script/register',
-      require: path.join(config.dirs.test, 'setup.js'),
       istanbul: true,
     }));
 });
@@ -187,8 +169,8 @@ gulp.task('watch:mocha', () => {
 
   return gulp
     .watch([
-      path.join(config.dirs.src, '**', '*.coffee'),
-      path.join(config.dirs.test, '**', '*.spec.coffee'),
+      path.join(config.dirs.src, '**', '*.js'),
+      path.join(config.dirs.test, '**', '*.spec.js'),
     ], () => {
       runSequence('mocha', () => null);
     });
@@ -199,9 +181,8 @@ gulp.task('watch:lint', () => {
 
   return gulp
     .watch([
-      path.join(config.dirs.src, '**', '*.coffee'),
-      path.join(config.dirs.test, '**', '*.coffee'),
-      path.join(__dirname, '*.coffee'),
+      path.join(config.dirs.src, '**', '*.js'),
+      path.join(config.dirs.test, '**', '*.js'),
       path.join(__dirname, '*.js'),
     ], () => {
       runSequence('lint', () => null);
