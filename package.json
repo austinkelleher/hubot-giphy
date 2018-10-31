@@ -17,7 +17,7 @@
     "url": "https://github.com/patsissons/hubot-giphy/issues"
   },
   "dependencies": {
-    "giphy-api": "~1.1.17"
+    "giphy-api": "^2.0.0"
   },
   "devDependencies": {
     "babel-core": "^6.8.0",
